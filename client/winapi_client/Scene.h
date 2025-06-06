@@ -7,8 +7,7 @@ public:
 	HWND m_hwnd;
 	HBITMAP m_hBufferBitmap;
 	HDC m_hBufferDC;
-
-	short next_scene;
+	void* m_fw;
 public:
 
 
@@ -17,6 +16,12 @@ public:
 		m_hwnd = hwnd;
 		m_hBufferBitmap = hBufferBitmap;
 		m_hBufferDC = hBufferDC;
+	};
+	Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC, void* fw) {
+		m_hwnd = hwnd;
+		m_hBufferBitmap = hBufferBitmap;
+		m_hBufferDC = hBufferDC;
+		m_fw = fw;
 	};
 
 public:
@@ -33,6 +38,8 @@ public:
 	virtual LRESULT CALLBACK windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 		return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
+
+	void scene_change(int next_scene);
 
 };
 

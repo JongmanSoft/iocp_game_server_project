@@ -1,24 +1,22 @@
 #pragma once
 #include "Scene.h"
 #include "Start_Scene.h"
+#include "Play_Scene.h"
 class Framework
 {
 
 public:
-	Scene* m_scene;
+	std::unique_ptr<Scene> m_scene;
 	HWND m_hwnd;
 	HBITMAP m_hBufferBitmap;
 	HDC m_hBufferDC;
-
-	short current_scene = START_SCENE;
 
 public:
 	Framework(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC) {
 		m_hwnd = hwnd;
 		m_hBufferBitmap = hBufferBitmap;
 		m_hBufferDC = hBufferDC;
-		m_scene = new Start_Scene(m_hwnd, m_hBufferBitmap, m_hBufferDC);
-		m_scene->next_scene = START_SCENE;
+		m_scene = std::make_unique<Start_Scene>(m_hwnd, m_hBufferBitmap, m_hBufferDC,this);
 	}
 	~Framework();
 public:
@@ -26,6 +24,8 @@ public:
 	void update();
 
 	void network();
+
+	void scene_change(int next_scene);
 
 	LRESULT CALLBACK windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 

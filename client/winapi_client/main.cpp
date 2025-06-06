@@ -29,11 +29,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
     GetClientRect(hwnd, &rect);
     hBufferBitmap = CreateCompatibleBitmap(hdc, rect.right, rect.bottom);
     SelectObject(hBufferDC, hBufferBitmap);
+   
     ReleaseDC(hwnd, hdc);
-
     ShowWindow(hwnd, nCmdShow);
     UpdateWindow(hwnd);
-
+   
    HANDLE Network_Thread = CreateThread(NULL, 0, client_network, hwnd, 0, NULL);
 
     MSG msg = {};
@@ -64,12 +64,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         hBufferBitmap = CreateCompatibleBitmap(hdc, rect.right, rect.bottom);
         SelectObject(hBufferDC, hBufferBitmap);
         ReleaseDC(hwnd, hdc);
-
-        m_framework = new Framework(NULL, hBufferBitmap, hBufferDC);
+        m_framework = new Framework(hwnd, hBufferBitmap, hBufferDC);
+      
         if (!m_framework) {
             return -1;
         }
-        m_framework->m_hwnd = hwnd;
+      
 
         return 0;
     }

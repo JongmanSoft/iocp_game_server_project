@@ -1,11 +1,11 @@
 #include "stdafx.h"
 #include "Start_Scene.h"
 
-Start_Scene::Start_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC) {
+Start_Scene::Start_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC, void* fw) {
     m_hwnd = hwnd;
     m_hBufferBitmap = hBufferBitmap;
     m_hBufferDC = hBufferDC;
-    next_scene = START_SCENE;
+    m_fw = fw;
     title_img.Load(L"image/title.png");
     FMOD_RESULT result = FMOD::System_Create(&g_system);
     if (result == FMOD_OK) {
@@ -17,9 +17,6 @@ Start_Scene::Start_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC) {
             }
         }
     }
-
-    
-    
 }
 
 Start_Scene::~Start_Scene() {
@@ -41,7 +38,6 @@ LRESULT Start_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     switch (uMsg) {
     case WM_CREATE:
     {
-        CreateCaret(hwnd, NULL, 5, 15); //--- 캐럿 만들기
         return 0;
     }
     case WM_PAINT: {
@@ -67,8 +63,9 @@ LRESULT Start_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         return 0;
     }
     case WM_CHAR: {
-
-        if (_caret.showing) {
+            if (wParam == VK_RETURN) {
+                scene_change(PLAY_SCENE);
+            }
             if (!_caret.select) {
                 if (wParam == VK_BACK) {
                     if (IP_T.count > 0) {
@@ -76,12 +73,10 @@ LRESULT Start_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
                         IP_T.count--;
                     }
                 }
-                else if (IP_T.count < 20) {
+                else if (IP_T.count < 20 && wParam != VK_RETURN) {
                     IP_T.T_input[IP_T.count++] = wParam;
                 }
-                _caret.pos.x = 253 + (IP_T.count * 9);
-                _caret.pos.y = 466;
-                SetCaretPos(_caret.pos.x, _caret.pos.y); //--- 캐럿 위치하기
+       
             }
             else {
                 if (wParam == VK_BACK) {
@@ -90,14 +85,12 @@ LRESULT Start_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
                         ID_T.count--;
                     }
                 }
-                else if (ID_T.count < 20) {
+                else if (ID_T.count < 20 && wParam != VK_RETURN) {
                     ID_T.T_input[ID_T.count++] = wParam;
                 }
-                _caret.pos.x = 253 + (ID_T.count * 9);
-                _caret.pos.y = 509;
-                SetCaretPos(_caret.pos.x, _caret.pos.y); //--- 캐럿 위치하기
+               
             }
-        }
+        
     }
             return 0;
     case WM_LBUTTONDOWN:
@@ -108,23 +101,15 @@ LRESULT Start_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         POINT mypt = { mx,my };
         if (PtInRect(&IP_input_RT, mypt)) {
             _caret.select = 0;
-            _caret.pos.x = 253 + (IP_T.count * 9);
-            _caret.pos.y = 466;
-            SetCaretPos(_caret.pos.x, _caret.pos.y); //--- 캐럿 위치하기
-            if (_caret.showing == false) ShowCaret(hwnd), _caret.showing = TRUE;
-
         }
         if (PtInRect(&ID_input_RT, mypt)) {
             _caret.select = 1;
-            _caret.pos.x = 253 + (ID_T.count * 9);
-            _caret.pos.y = 509;
-            SetCaretPos(_caret.pos.x, _caret.pos.y); //--- 캐럿 위치하기
-            if (_caret.showing == false) ShowCaret(hwnd), _caret.showing = TRUE;
+
         }
     }
     return 0;
     case WM_KEYDOWN:
-
+        
         InvalidateRect(hwnd, NULL, FALSE);
         return 0;
     case WM_DESTROY:
@@ -139,10 +124,5 @@ LRESULT Start_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         return 0;
         }
         return DefWindowProc(hwnd, uMsg, wParam, lParam);
-    }
+  }
 
-void Start_Scene::play_bgm()
-{
-    g_system->playSound(g_sound, nullptr, false, &g_channel);
-}
-    

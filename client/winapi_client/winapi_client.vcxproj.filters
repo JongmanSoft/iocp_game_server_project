@@ -27,6 +27,9 @@
     <ClCompile Include="Start_Scene.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Play_Scene.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -39,6 +42,9 @@
       <Filter>소스 파일</Filter>
     </ClInclude>
     <ClInclude Include="Start_Scene.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Play_Scene.h">
       <Filter>소스 파일</Filter>
     </ClInclude>
   </ItemGroup>

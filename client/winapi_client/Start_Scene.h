@@ -7,9 +7,7 @@ struct input_text {
 };
 
 struct s_caret {
-    bool showing = false;
     bool select = false;
-    POINT pos = { 253,466 };
 };
 
 class Start_Scene : public Scene {
@@ -30,11 +28,10 @@ public:
     s_caret _caret;
 
 public:
-    Start_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC);
+    Start_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC, void* fw);
     ~Start_Scene(); 
     void update() override;
     void network() override;
     LRESULT CALLBACK windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
-public:
-    void play_bgm();
+
 };
