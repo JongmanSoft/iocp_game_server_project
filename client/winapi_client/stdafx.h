@@ -1,6 +1,11 @@
 #pragma once
 #include <windows.h>
 #include <iostream>
+#include <array>
+#include <vector>
+#include <fstream>
+#include <sstream>
+#include <string>
 #include <chrono>
 #include <thread>
 #include <atlimage.h>
@@ -11,3 +16,4 @@
 #define PLAY_SCENE 1
 
 using namespace FMOD;
+#pragma comment(lib, "gdiplus.lib")

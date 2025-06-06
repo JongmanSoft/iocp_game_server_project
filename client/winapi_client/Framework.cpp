@@ -20,6 +20,7 @@ void Framework::network()
 
 void Framework::scene_change(int next_scene)
 {
+	m_scene->shutdown();
 	switch (next_scene)
 	{
 	case START_SCENE:

@@ -35,6 +35,8 @@ public:
 
 	virtual void network() = 0;
 
+	virtual void shutdown() = 0;
+
 	virtual LRESULT CALLBACK windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 		return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}

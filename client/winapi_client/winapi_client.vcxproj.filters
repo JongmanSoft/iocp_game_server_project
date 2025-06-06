@@ -30,6 +30,12 @@
     <ClCompile Include="Play_Scene.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Map_data.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Tile.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -47,9 +53,18 @@
     <ClInclude Include="Play_Scene.h">
       <Filter>소스 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Map_data.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Tile.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="image\title.png">
+      <Filter>리소스 파일</Filter>
+    </Image>
+    <Image Include="image\tileset.png">
       <Filter>리소스 파일</Filter>
     </Image>
   </ItemGroup>

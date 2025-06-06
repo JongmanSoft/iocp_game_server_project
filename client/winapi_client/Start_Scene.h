@@ -32,6 +32,7 @@ public:
     ~Start_Scene(); 
     void update() override;
     void network() override;
+    void shutdown() override;
     LRESULT CALLBACK windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) override;
 
 };

@@ -1,5 +1,7 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include "stdafx.h"
 #include "Framework.h"
+#include "Map_data.h"
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 DWORD WINAPI client_network(LPVOID param); 
@@ -10,6 +12,13 @@ bool isRunning = true;
 Framework* m_framework;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow) {
+
+    // 콘솔 창 열기
+    AllocConsole();
+    auto res = freopen("CONIN$", "r", stdin);  // 표준 입력을 콘솔로
+    res = freopen("CONOUT$", "w", stdout); // 표준 출력을 콘솔로
+    Map_data::get_inst().init();
+
     WNDCLASSEX wcex = { 0 };
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW;
@@ -46,6 +55,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 
     WaitForSingleObject(Network_Thread, INFINITE);
     CloseHandle(Network_Thread);
+    
+   
 
     delete m_framework;
     DeleteDC(hBufferDC);
