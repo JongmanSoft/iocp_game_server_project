@@ -14,7 +14,7 @@ void object::change_state(int state_type, int dir)
 		state_ptr = std::make_unique<loop_state>(_type, state_type, this);
 		break;
 	case WALK:
-		state_ptr = std::make_unique<loop_state>(_type, state_type, this);
+		state_ptr = std::make_unique<return_state>(_type, state_type, this);
 		state_ptr->current_frame = curr_frame;
 		break;
 	case ATTACK:

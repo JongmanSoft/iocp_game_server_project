@@ -23,7 +23,7 @@ public:
 				img = &sprite_data::get_inst().orc_idle;
 				break;
 			case WALK:
-				max_frame = 6;
+				max_frame = 8;
 				img =&sprite_data::get_inst().orc_walk;
 				break;
 			case ATTACK:

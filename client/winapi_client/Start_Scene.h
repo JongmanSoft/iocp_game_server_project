@@ -16,7 +16,7 @@ public:
     CImage title_img;
 
     FMOD::System* g_system = nullptr;
-    FMOD::Sound* g_sound = nullptr;
+    FMOD::Sound* g_bgm = nullptr;
     FMOD::Channel* g_channel = nullptr;
 
     RECT IP_input_RT = { 251,463,251 + 209,463 + 31 };

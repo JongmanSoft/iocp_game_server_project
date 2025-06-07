@@ -11,9 +11,9 @@ Start_Scene::Start_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC, void* 
     if (result == FMOD_OK) {
         result = g_system->init(32, FMOD_INIT_NORMAL, nullptr);
         if (result == FMOD_OK) {
-            result = g_system->createSound("sound/BGM_title.mp3", FMOD_DEFAULT | FMOD_LOOP_NORMAL, nullptr, &g_sound);
+            result = g_system->createSound("sound/BGM_title.mp3", FMOD_DEFAULT | FMOD_LOOP_NORMAL, nullptr, &g_bgm);
             if (result == FMOD_OK) {
-                g_system->playSound(g_sound, nullptr, false, &g_channel);
+                g_system->playSound(g_bgm, nullptr, false, &g_channel);
             }
         }
     }
@@ -38,9 +38,9 @@ void Start_Scene::shutdown()
     if (g_channel != nullptr) {
         g_channel->stop();
     }
-    if (g_sound != nullptr) {
-        g_sound->release();
-        g_sound = nullptr;
+    if (g_bgm != nullptr) {
+        g_bgm->release();
+        g_bgm = nullptr;
     }
     if (g_system != nullptr) {
         g_system->close();
@@ -65,14 +65,14 @@ LRESULT Start_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         // 배경
         FillRect(m_hBufferDC, &rect, (HBRUSH)GetStockObject(BLACK_BRUSH));
         // 타이틀이미지
-        title_img.StretchBlt(m_hBufferDC, 0, 0, window_size, window_size,
-            0, 0, title_img.GetWidth(), title_img.GetHeight(), SRCCOPY);
+        title_img.AlphaBlend(m_hBufferDC, 0, 0, window_size, window_size,
+            0, 0, title_img.GetWidth(), title_img.GetHeight(),255, AC_SRC_OVER);
         //텍스트
         SetBkMode(m_hBufferDC, TRANSPARENT);
-        SetTextColor(m_hBufferDC, RGB(236, 135, 138));
+        SetTextColor(m_hBufferDC, RGB(90, 37, 23));
 
-        TextOut(m_hBufferDC, 253, 466, IP_T.T_input, lstrlen(IP_T.T_input));
-        TextOut(m_hBufferDC, 253, 509, ID_T.T_input, lstrlen(ID_T.T_input));
+        TextOut(m_hBufferDC, 253, 467, IP_T.T_input, lstrlen(IP_T.T_input));
+        TextOut(m_hBufferDC, 253, 511, ID_T.T_input, lstrlen(ID_T.T_input));
         BitBlt(hdc, 0, 0, window_size, window_size, m_hBufferDC, 0, 0, SRCCOPY);
         EndPaint(hwnd, &ps);
         return 0;
@@ -130,7 +130,7 @@ LRESULT Start_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     case WM_DESTROY:
         // FMOD 자원 정리
         if (g_channel) g_channel->stop();
-        if (g_sound) g_sound->release();
+        if (g_bgm) g_bgm->release();
         if (g_system) {
             g_system->close();
             g_system->release();
