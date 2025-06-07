@@ -1,6 +1,7 @@
 #pragma once
 #include "Scene.h"
 #include "Map_data.h"
+#include "object.h"
 class Play_Scene :
 	public Scene
 {
@@ -11,7 +12,9 @@ public:
     FMOD::Sound* g_sound = nullptr;
     FMOD::Channel* g_channel = nullptr;
 
-    POINT camera_pos = { 1979,1979 };
+    POINT camera_pos = { 1000,1000 };
+
+    std::unique_ptr<object> player;
 public:
      Play_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC, void* fw);
     ~Play_Scene();

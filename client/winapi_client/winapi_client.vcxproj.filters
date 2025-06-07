@@ -13,28 +13,46 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="소스 파일\Frame_work">
+      <UniqueIdentifier>{66ff681c-81be-4b8a-a200-dea46210319f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\scene">
+      <UniqueIdentifier>{0a02c1a7-2b42-4b11-b81c-1a6f4b11d5f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\data">
+      <UniqueIdentifier>{e527b977-8b1a-4693-b901-b542d1de8632}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\object">
+      <UniqueIdentifier>{a4e959aa-731e-49a8-bc5a-427f8144f52d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="Framework.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>소스 파일\Frame_work</Filter>
     </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="Start_Scene.cpp">
-      <Filter>소스 파일</Filter>
+    <ClCompile Include="main.cpp">
+      <Filter>소스 파일\Frame_work</Filter>
     </ClCompile>
     <ClCompile Include="Play_Scene.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>소스 파일\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>소스 파일\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Start_Scene.cpp">
+      <Filter>소스 파일\scene</Filter>
     </ClCompile>
     <ClCompile Include="Map_data.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>소스 파일\data</Filter>
     </ClCompile>
-    <ClCompile Include="Tile.cpp">
-      <Filter>소스 파일</Filter>
+    <ClCompile Include="object.cpp">
+      <Filter>소스 파일\object</Filter>
+    </ClCompile>
+    <ClCompile Include="sprite_data.cpp">
+      <Filter>소스 파일\data</Filter>
+    </ClCompile>
+    <ClCompile Include="state.cpp">
+      <Filter>소스 파일\object</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -42,22 +60,28 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Framework.h">
-      <Filter>소스 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>소스 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="Start_Scene.h">
-      <Filter>소스 파일</Filter>
+      <Filter>소스 파일\Frame_work</Filter>
     </ClInclude>
     <ClInclude Include="Play_Scene.h">
-      <Filter>소스 파일</Filter>
+      <Filter>소스 파일\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>소스 파일\scene</Filter>
     </ClInclude>
     <ClInclude Include="Map_data.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>소스 파일\data</Filter>
     </ClInclude>
-    <ClInclude Include="Tile.h">
-      <Filter>헤더 파일</Filter>
+    <ClInclude Include="object.h">
+      <Filter>소스 파일\object</Filter>
+    </ClInclude>
+    <ClInclude Include="Start_Scene.h">
+      <Filter>소스 파일\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="sprite_data.h">
+      <Filter>소스 파일\data</Filter>
+    </ClInclude>
+    <ClInclude Include="state.h">
+      <Filter>소스 파일\object</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

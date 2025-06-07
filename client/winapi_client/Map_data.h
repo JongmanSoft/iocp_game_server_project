@@ -1,6 +1,11 @@
 #pragma once
 #include "stdafx.h"
-#include "Tile.h"
+struct Tile
+{
+    int _id[3] = { -1,-1,-1 };
+    unsigned short _collision = 0;
+};
+
 class Map_data
 {
 public:

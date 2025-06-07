@@ -2,9 +2,11 @@
 #include "stdafx.h"
 #include "Framework.h"
 #include "Map_data.h"
+#include "sprite_data.h"
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 DWORD WINAPI client_network(LPVOID param); 
+DWORD WINAPI client_update(LPVOID param); 
 
 HBITMAP hBufferBitmap;
 HDC hBufferDC;
@@ -18,6 +20,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
     auto res = freopen("CONIN$", "r", stdin);  // 표준 입력을 콘솔로
     res = freopen("CONOUT$", "w", stdout); // 표준 출력을 콘솔로
     Map_data::get_inst().init();
+    sprite_data::get_inst().init();
 
     WNDCLASSEX wcex = { 0 };
     wcex.cbSize = sizeof(WNDCLASSEX);
@@ -44,6 +47,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
     UpdateWindow(hwnd);
    
    HANDLE Network_Thread = CreateThread(NULL, 0, client_network, hwnd, 0, NULL);
+   HANDLE Update_Thread = CreateThread(NULL, 0, client_update, hwnd, 0, NULL);
 
     MSG msg = {};
     while (GetMessage(&msg, NULL, 0, 0)) {
@@ -55,7 +59,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
 
     WaitForSingleObject(Network_Thread, INFINITE);
     CloseHandle(Network_Thread);
-    
+    WaitForSingleObject(Update_Thread, INFINITE); // 스레드가 종료될 때까지 대기
+    CloseHandle(Update_Thread); // 스레드 핸들 닫기
    
 
     delete m_framework;
@@ -103,7 +108,7 @@ DWORD WINAPI client_update(LPVOID param) {
     HWND hwnd = (HWND)param;
 
     auto previousTime = std::chrono::high_resolution_clock::now();
-    const double frameDuration = 1.0 / 30.0f; // 30 FPS
+    const double frameDuration = 1.0 / 10.0f; // 10 FPS
 
     while (isRunning) {
         auto currentTime = std::chrono::high_resolution_clock::now();

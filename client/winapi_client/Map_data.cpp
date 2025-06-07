@@ -1,5 +1,6 @@
 #include "Map_data.h"
 
+
 void Map_data::csv_import(std::ifstream& file, int layer)
 {
     std::vector<std::vector<std::string>> data;
@@ -37,7 +38,7 @@ void Map_data::csv_import(std::ifstream& file, int layer)
 
 void Map_data::init()
 {
-    std::cout << "map import begin";
+
     //object.acc layer import
     {
         std::ifstream layer2("csv/100map_object_acc.csv");
@@ -62,5 +63,5 @@ void Map_data::init()
         }
         csv_import(layer0, 0);
     }
-    std::cout << "map import end";
+    std::cout << "map import finish";
 }
