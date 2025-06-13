@@ -19,16 +19,28 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DB_Manager.h" />
     <ClInclude Include="network_manager.h" />
     <ClInclude Include="protocol.h" />
+    <ClInclude Include="OBJECT.h" />
+    <ClInclude Include="SECTOR.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Timer_manager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DB_manager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="network_manager.cpp" />
+    <ClCompile Include="OBJECT.cpp" />
+    <ClCompile Include="SECTOR.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="Timer_manager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="lua54.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="npc.lua" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -116,6 +128,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,6 +143,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

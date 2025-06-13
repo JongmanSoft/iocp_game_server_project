@@ -2,6 +2,7 @@
 
 constexpr short GAME_PORT = 3000;
 
+constexpr short BUF_SIZE = 200;
 constexpr short MAX_CHAT_LENGTH = 255;
 
 constexpr int  MAX_USER = 10000;
@@ -32,6 +33,10 @@ constexpr char MOVE_RIGHT = 4;
 constexpr unsigned short MAP_HEIGHT = 2000;
 constexpr unsigned short MAP_WIDTH = 2000;
 
+constexpr unsigned short init_x = 1040;
+constexpr unsigned short init_y = 1028;
+
+
 #pragma pack (push, 1)
 
 struct sc_packet_avatar_info {
@@ -57,7 +62,7 @@ struct sc_packet_enter {
 	char type;
 	long long  id;
 	char name[MAX_ID_LENGTH];
-	char o_type;						// 0 : PLAYER
+	char o_type; // 0 : PLAYER
 	// 1...  : NPCµé  
 	short x, y;
 };

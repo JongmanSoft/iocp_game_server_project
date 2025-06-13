@@ -36,6 +36,18 @@
     <ClInclude Include="protocol.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="DB_Manager.h">
+      <Filter>소스 파일\database</Filter>
+    </ClInclude>
+    <ClInclude Include="OBJECT.h">
+      <Filter>소스 파일\object</Filter>
+    </ClInclude>
+    <ClInclude Include="SECTOR.h">
+      <Filter>소스 파일\object</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer_manager.h">
+      <Filter>소스 파일\main</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="network_manager.cpp">
@@ -44,10 +56,30 @@
     <ClCompile Include="main.cpp">
       <Filter>소스 파일\main</Filter>
     </ClCompile>
+    <ClCompile Include="DB_manager.cpp">
+      <Filter>소스 파일\database</Filter>
+    </ClCompile>
+    <ClCompile Include="OBJECT.cpp">
+      <Filter>소스 파일\object</Filter>
+    </ClCompile>
+    <ClCompile Include="SECTOR.cpp">
+      <Filter>소스 파일\object</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>헤더 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer_manager.cpp">
+      <Filter>소스 파일\main</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="lua54.lib">
       <Filter>리소스 파일</Filter>
     </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="npc.lua">
+      <Filter>리소스 파일</Filter>
+    </None>
   </ItemGroup>
 </Project>
