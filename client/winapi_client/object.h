@@ -6,7 +6,7 @@ class object
 public:
 	int _id;
 	int _x, _y;
-	char _name[20] = "jongman";//추후 프로토콜에 있는 네임사이즈로..
+	char _name[MAX_ID_LENGTH] = "jongman";
 	int _hp = 100;
 	int _level = 1;
 

@@ -11,10 +11,11 @@
 #include <atlimage.h>
 #include "fmod.hpp"
 #include "fmod_errors.h"
+#include "../../server/iocp_server/protocol.h"
 #define window_size 640
 #define START_SCENE 0
 #define PLAY_SCENE 1
-#define MAP_SIZE 2000
+#define MAP_SIZE MAP_HEIGHT
 #define MAP_CULLING 20
 
 using namespace FMOD;
