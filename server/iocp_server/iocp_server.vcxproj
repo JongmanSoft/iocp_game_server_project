@@ -20,7 +20,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DB_Manager.h" />
+    <ClInclude Include="global_data.h" />
     <ClInclude Include="network_manager.h" />
+    <ClInclude Include="OVER_EXP.h" />
     <ClInclude Include="protocol.h" />
     <ClInclude Include="OBJECT.h" />
     <ClInclude Include="SECTOR.h" />
@@ -29,11 +31,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DB_manager.cpp" />
+    <ClCompile Include="global_data.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="network_manager.cpp" />
     <ClCompile Include="OBJECT.cpp" />
+    <ClCompile Include="OVER_EXP.cpp" />
     <ClCompile Include="SECTOR.cpp" />
-    <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="Timer_manager.cpp" />
   </ItemGroup>
   <ItemGroup>

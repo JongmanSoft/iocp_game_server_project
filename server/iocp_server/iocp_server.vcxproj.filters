@@ -48,6 +48,12 @@
     <ClInclude Include="Timer_manager.h">
       <Filter>소스 파일\main</Filter>
     </ClInclude>
+    <ClInclude Include="OVER_EXP.h">
+      <Filter>소스 파일\network</Filter>
+    </ClInclude>
+    <ClInclude Include="global_data.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="network_manager.cpp">
@@ -65,11 +71,14 @@
     <ClCompile Include="SECTOR.cpp">
       <Filter>소스 파일\object</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>헤더 파일</Filter>
-    </ClCompile>
     <ClCompile Include="Timer_manager.cpp">
       <Filter>소스 파일\main</Filter>
+    </ClCompile>
+    <ClCompile Include="OVER_EXP.cpp">
+      <Filter>소스 파일\network</Filter>
+    </ClCompile>
+    <ClCompile Include="global_data.cpp">
+      <Filter>헤더 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

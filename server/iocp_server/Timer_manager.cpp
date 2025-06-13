@@ -2,7 +2,7 @@
 
 concurrency::concurrent_priority_queue<TIMER_EVENT> timer_queue;
 
-void timer_thread()
+void Do_Timer()
 {
 	while (true)
 	{

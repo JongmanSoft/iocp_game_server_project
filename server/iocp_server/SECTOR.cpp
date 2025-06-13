@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "SECTOR.h"
-
+#include "global_data.h"
 
 std::array<std::array<concurrency::concurrent_unordered_set<int>, (MAP_HEIGHT / SECTOR_SIZE) + 1>, (MAP_WIDTH / SECTOR_SIZE) + 1> g_sectors;
 std::array<std::array<std::mutex, MAP_WIDTH / SECTOR_SIZE>, MAP_HEIGHT / SECTOR_SIZE> g_sector_mutexes;

@@ -1,8 +1,11 @@
 #pragma once
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <MSWSock.h>
+#include <windows.h>
 #include <iostream>
 #include <array>
-#include <WS2tcpip.h>
-#include <MSWSock.h>
 #include <string.h>
 #include <thread>
 #include <vector>
@@ -13,10 +16,9 @@
 #include <concurrent_unordered_set.h>
 #include <concurrent_priority_queue.h>
 #include <concurrent_queue.h>
-#include <sqlext.h>  
+#include <sqlext.h>
 #include <locale.h>
 #include "protocol.h"
-#include "OBJECT.h"
 #include "include/lua.hpp"
 
 #pragma comment(lib, "WS2_32.lib")
@@ -24,14 +26,3 @@
 #pragma comment(lib, "lua54.lib")
 using namespace std;
 
-extern concurrency::concurrent_unordered_map<long long,
-	std::atomic<std::shared_ptr<OBJECT>>>object;
-
-//DB접근 결과를 알리기 위한 유저정보 확장 오버랩드 구조체에 넣을것.
-struct USER_TABLE 
-{
-	char uid[20];
-	int x, y;
-	int level;
-	int hp;
-};

@@ -1,10 +1,13 @@
 #pragma once
-#include "Windows.h"
 #include <mutex>
+#include <memory>
 #include "SECTOR.h"
 #include "protocol.h"
+#include "OVER_EXP.h"
 #include "include/lua.hpp"
 #pragma comment(lib, "lua54.lib")
+
+//class OVER_EXP;
 
 enum S_STATE { ST_FREE, ST_ALLOC, ST_INGAME };
 class OBJECT
@@ -25,7 +28,7 @@ public:
 class USER :public OBJECT {
 public:
 	SOCKET _socket;
-	//OVER_EXP _recv_over;
+	OVER_EXP _recv_over;
 	int		_prev_remain;
 	concurrency::concurrent_unordered_set <int> _view_list;
 	int		last_move_time;
@@ -43,6 +46,12 @@ public:
 	void send_move_packet(int c_id);
 	void send_remove_player_packet(int c_id);
 
+
+	void send_login_fail_packet(int reason);
+	void send_login_info_packet();
+	void send_add_player_packet(int c_id);
+	void send_chat_packet(int c_id, const char* mess);
+	
 };
 
 class NPC : public OBJECT {

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "DB_Manager.h"
 #include "network_manager.h"
-
+#include "Timer_manager.h"
 
 HANDLE h_iocp;
 
@@ -9,7 +9,100 @@ SOCKET g_s_socket, g_c_socket;
 OVER_EXP g_a_over;
 
 void process_packet(int c_id, char* packet) {
+	auto it = object.find(c_id);
+	if (it == object.end()) return;
+	std::shared_ptr<USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
+	switch (packet[1]) {
+	case C2S_P_LOGIN: {
+		cs_packet_login* p = reinterpret_cast<cs_packet_login*>(packet);
+		//동접수 10000아래인지 확인
+		//특수문자포함했는지확인
+		//이미 접속중인지 확인
+		//접속중이 아니라면,데이터베이스에 있는계정인지 확인
+		strcpy_s(c->_name, p->name);
+		DB_event dev = { DB_LOAD_INFO, c_id };
+		DBQ.push(dev);
+		break;
+	}
+	case C2S_P_MOVE: {
+		cs_packet_move* p = reinterpret_cast<cs_packet_move*>(packet);
+		short x = c->x;
+		short y = c->y;
+		switch (p->direction) {
+		case 0: if (y > 0) y--; break;
+		case 1: if (y < MAP_HEIGHT - 1) y++; break;
+		case 2: if (x > 0) x--; break;
+		case 3: if (x < MAP_WIDTH - 1) x++; break;
+		}
+		if (get_sector_index(c->x, c->y) == get_sector_index(x, y))
+		{
+			c->x = x; c->y = y;
+		}
+		else {
+			delete_sector(c->_id, c->x, c->y);
+			c->x = x; c->y = y;
+			insert_sector(c->_id, c->x, c->y);
+		}
+		std::pair<int, int> centre_index = get_sector_index(c->x, c->y);
+		unordered_set<int> near_list;
+		std::pair<int, int> min_index = { max(0,centre_index.first - 1), max(0,centre_index.second - 1) };
+		std::pair<int, int> max_index = { min(MAP_HEIGHT / SECTOR_SIZE - 1 ,centre_index.first + 1),min(MAP_WIDTH / SECTOR_SIZE - 1,centre_index.second + 1) };
 
+		for (int row = min_index.first; row < max_index.first + 1; row++) {
+			for (int col = min_index.second; col < max_index.second + 1; col++) {
+				concurrency::concurrent_unordered_set<int> local_list;
+				{
+					std::lock_guard<std::mutex> ll(g_sector_mutexes[row][col]);
+					local_list = g_sectors[row][col];
+				}
+
+				for (auto& cl : local_list) {
+					shared_ptr<OBJECT>p = object.at(cl);
+					if (p->_state != ST_INGAME) continue;
+					if (p->_id == c_id) continue;
+					if (can_see(c_id, p->_id))
+						near_list.insert(p->_id);
+				}
+			}
+		}
+		auto old_vlist = c->_view_list;
+		//DB에 이동저장 요청
+		DB_event dev = { DB_SAVE_XY, c_id };
+		DBQ.push(dev);
+		c->send_move_packet(c_id);
+
+		for (auto& pl : near_list) {
+			shared_ptr<OBJECT>cpll = object.at(pl);
+			auto cpl = std::dynamic_pointer_cast<USER>(cpll);
+			if (cpl) {
+				if (cpl->_view_list.count(c_id)) {
+					cpl->send_move_packet(c_id);
+				}
+				else {
+					cpl->send_add_player_packet(c_id);
+				}
+			}
+			else  //WakeUpNPC(cpl->_id, c_id);
+
+			if (old_vlist.count(pl) == 0) {
+				c->send_add_player_packet(pl);
+				//if (is_npc(cpl->_id)) WakeUpNPC(cpl->_id, c_id);
+			}
+
+		}
+
+		for (auto& pl : old_vlist)
+			if (0 == near_list.count(pl)) {
+				auto it = object.find(pl); if (it == object.end()) break;
+				shared_ptr <USER> cpl = std::dynamic_pointer_cast<USER>(it->second.load());
+				c->send_remove_player_packet(pl);
+				if (!cpl) {	continue;
+				}
+				cpl->send_remove_player_packet(c_id);
+			}
+	}
+				break;
+	}
 }
 
 
@@ -57,8 +150,7 @@ void worker_thread(HANDLE h_iocp)
 		case OP_RECV: {
 			auto it = object.find(key);
 			if (it == object.end()) break;
-
-			shared_ptr <USER> c = std::dynamic_pointer_cast<USER,OBJECT>(it->second.load());
+			shared_ptr <USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
 			int remain_data = num_bytes + c->_prev_remain;
 			char* p = ex_over->_send_buf;
 			while (remain_data > 0) {
@@ -88,6 +180,23 @@ void worker_thread(HANDLE h_iocp)
 }
 
 int main() {
+
+	DB_init();
+	network_init();
+
+	vector <thread> worker_threads;
+	int num_threads = std::thread::hardware_concurrency();
+	for (int i = 0; i < num_threads; ++i)
+		worker_threads.emplace_back(worker_thread, h_iocp);
+
+	thread timer_thread{ Do_Timer };
+	timer_thread.join();
+
+	thread db_thread{ DB_thread };
+	db_thread.join();
+
+	for (auto& th : worker_threads)
+		th.join();
 
 	return 0;
 }
