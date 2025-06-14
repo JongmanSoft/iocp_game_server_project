@@ -20,6 +20,10 @@ constexpr char S2C_P_LOGIN_FAIL = 9;
 constexpr char C2S_P_ATTACK = 10;
 constexpr char C2S_P_CHAT = 11;
 constexpr char C2S_P_TELEPORT = 12;		// 동접 테스트 할 때
+
+constexpr char S2C_P_STATE = 13;
+constexpr char C2S_P_STATE = 14;
+
 // 시작마을의 HOTSPOT을 방지하기 위해 
 // RANDOM TELEPORT할 때 사용
 
@@ -112,7 +116,20 @@ struct sc_packet_login_fail {
 	// 2 : 부적절한 ID (특수문자, 20자 이상)
 	// 3 : 서버에 동접이 너무 많음
 };
+//추가 패킷
 
+//애니메이션 동기화용 패킷, 나를 제외한 범위내의 플레이어들한테 뿌린다.
+struct sc_packet_state { 
+	unsigned char size;
+	char type;
+	long long id;
+	int state;
+	char  direction;
+};
+
+
+
+//====================================
 struct cs_packet_login {
 	unsigned char  size;
 	char  type;
@@ -139,6 +156,14 @@ struct cs_packet_chat {
 struct cs_packet_teleport {
 	unsigned char  size;
 	char  type;
+};
+
+//추가패킷
+struct cs_packet_state {
+	unsigned char  size;
+	char  type;
+	int state;
+	char  direction;
 };
 
 #pragma pack (pop)

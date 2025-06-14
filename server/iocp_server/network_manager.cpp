@@ -76,7 +76,6 @@ void USER::do_send(void* packet)
 
 void USER::send_move_packet(int c_id)
 {
-
 	auto it = object.find(c_id);
 	if (it == object.end()) return;
 	std::shared_ptr<USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
@@ -102,6 +101,20 @@ void USER::send_remove_player_packet(int c_id)
 	p.id = c_id;
 	p.size = sizeof(p);
 	p.type = S2C_P_LEAVE;
+	do_send(&p);
+}
+
+void USER::send_state_packet(int c_id,int state, char dir)
+{
+	auto it = object.find(c_id);
+	if (it == object.end()) return;
+	std::shared_ptr<USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
+	sc_packet_state p;
+	p.id = c_id;
+	p.size = sizeof(sc_packet_state);
+	p.type = S2C_P_STATE;
+	p.state = state;
+	p.direction = dir;
 	do_send(&p);
 }
 

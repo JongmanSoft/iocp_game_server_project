@@ -44,5 +44,6 @@ public:
 	void add_packet_process(sc_packet_enter);
 	void leave_packet_process(sc_packet_leave);
 	void stat_change_packet_process(sc_packet_stat_change);
+	void state_packet_process(sc_packet_state);
 };
 

@@ -81,17 +81,14 @@ void update_view_list(int c_id) {
 
 
 	for (auto& pl : near_list) {
-		std::cout << c_id << "의 시야리스트에 있는 수:"<<near_list.size() << std::endl;
 		shared_ptr<OBJECT>cpll = object.at(pl);
 		auto cpl = std::dynamic_pointer_cast<USER>(cpll);
 		if (cpl) { //
 
 			if (cpl->_view_list.count(c_id)) { //상대방뷰리스트에 내가 있다면
-				std::cout << c_id<<":"<< "상대방이 내 이동을 업데이트함" << std::endl;
 				cpl->send_move_packet(c_id);
 			}
 			else {
-				std::cout << c_id << ":" << "상대방이 내 등장을 업데이트함" << std::endl;
 				cpl->send_add_player_packet(c_id);
 			}
 			
@@ -99,7 +96,6 @@ void update_view_list(int c_id) {
 		}
 		else {}//WakeUpNPC(cpl->_id, c_id);
 		if (old_vlist.count(pl) == 0) {
-				std::cout << c_id << ":" << "내가 상대 등장을 업데이트함" << std::endl;
 				c->send_add_player_packet(pl);
 				//if (is_npc(cpl->_id)) WakeUpNPC(cpl->_id, c_id);
 		}
@@ -108,14 +104,49 @@ void update_view_list(int c_id) {
 		if (0 == near_list.count(pl)) {
 			auto it = object.find(pl); if (it == object.end()) break;
 			shared_ptr <USER> cpl = std::dynamic_pointer_cast<USER>(it->second.load());
-			std::cout << c_id << ":" << "상대방이 내 시야에서 사라짐" << std::endl;
 			c->send_remove_player_packet(pl);
 			if (!cpl) {
 				continue;
 			}
-			std::cout << c_id << ":" << "내가 상대방 시야에서 사라짐" << std::endl;
 			cpl->send_remove_player_packet(c_id);
 		}
+}
+
+void update_animation(int c_id, int state, char dir) {
+	auto it = object.find(c_id);
+	if (it == object.end()) return;
+	std::shared_ptr<USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
+	std::pair<int, int>index = get_sector_index(c->x, c->y);
+	std::pair<int, int> min_index = { max(0,index.first - 1), max(0,index.second - 1) };
+	std::pair<int, int> max_index = {
+		min(MAP_HEIGHT / SECTOR_SIZE - 1,index.first + 1),
+			min(MAP_WIDTH / SECTOR_SIZE - 1,index.second + 1) };
+
+	for (int row = min_index.first; row < max_index.first + 1; row++) {
+		for (int col = min_index.second; col < max_index.second + 1; col++) {
+			concurrency::concurrent_unordered_set<int> local_list;
+			{
+				std::lock_guard<std::mutex> ll(g_sector_mutexes[row][col]);
+				local_list = g_sectors[row][col];
+			}
+
+			for (const int& p_id : local_list) {
+				shared_ptr<OBJECT>p = object.at(p_id);
+				{
+					lock_guard<mutex> ll(p->_s_lock);
+					if (ST_INGAME != p->_state) continue;
+				}
+				if (p->_id == c_id) continue;
+				if (false == can_see(c_id, p->_id))
+					continue;
+				if (is_pc(p->_id)) {
+					shared_ptr <USER> PP = std::dynamic_pointer_cast<USER>(p);
+					PP->send_state_packet(c_id,state,dir);
+				}
+		
+			}
+		}
+	}
 }
 
 void process_packet(int c_id, char* packet) {
@@ -160,6 +191,11 @@ void process_packet(int c_id, char* packet) {
 		update_view_list(c_id);
 		}
 				break;
+	case C2S_P_STATE:{
+		cs_packet_state* p = reinterpret_cast<cs_packet_state*>(packet);
+		update_animation(c_id, p->state, p->direction);
+		}
+		break;
 	}
 }
 

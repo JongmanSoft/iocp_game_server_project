@@ -25,6 +25,7 @@ public:
     void sendAttackPacket();
     void sendChatPacket(const std::string& message);
     void sendTeleportPacket();
+    void sendStatePacket(int state, char dir);
 
     // 패킷 수신 콜백 설정
     using PacketHandler = std::function<void(const char*, size_t)>;

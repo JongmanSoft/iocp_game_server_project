@@ -120,6 +120,17 @@ void NonBlockingClient::sendTeleportPacket()
     sendQueue_.emplace(std::vector<char>(reinterpret_cast<char*>(&packet), reinterpret_cast<char*>(&packet) + packet.size));
 }
 
+void NonBlockingClient::sendStatePacket(int state, char dir)
+{
+    cs_packet_state packet = {};
+    packet.size = sizeof(cs_packet_state);
+    packet.type = C2S_P_STATE;
+    packet.direction = dir;
+    packet.state = state;
+    std::lock_guard<std::mutex> lock(sendMutex_);
+    sendQueue_.emplace(std::vector<char>(reinterpret_cast<char*>(&packet), reinterpret_cast<char*>(&packet) + packet.size));
+}
+
 void NonBlockingClient::processNetwork()
 {
 
@@ -260,6 +271,15 @@ void NonBlockingClient::handleReceivedPacket(const char* buffer, size_t size)
     case S2C_P_STAT_CHANGE: {
         if (size < sizeof(sc_packet_stat_change)) return;
         const sc_packet_stat_change* packet = reinterpret_cast<const sc_packet_stat_change*>(buffer);
+        if (packetHandler_) {
+            packetHandler_(buffer, size);
+        }
+        break;
+    }
+    case S2C_P_STATE: {
+        if (size < sizeof(sc_packet_state)) return;
+        const sc_packet_state* packet = reinterpret_cast<const sc_packet_state*>(buffer);
+        m_framwork->state_packet_process(*packet);
         if (packetHandler_) {
             packetHandler_(buffer, size);
         }
