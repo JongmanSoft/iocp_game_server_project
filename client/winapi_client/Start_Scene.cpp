@@ -31,7 +31,9 @@ void Start_Scene::update() {
 }
 
 void Start_Scene::network() {
-   
+    if (accept_sucess) {
+        NonBlockingClient::get_inst().processNetwork();
+   }
 }
 
 void Start_Scene::shutdown()
@@ -87,8 +89,11 @@ LRESULT Start_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
                     WideCharToMultiByte(CP_UTF8, 0, IP_T.T_input, -1, &result[0], len, nullptr, nullptr);
                 }
                 NonBlockingClient::get_inst().init(result,GAME_PORT);
-                NonBlockingClient::get_inst().connectToServer();
-                scene_change(PLAY_SCENE);
+                accept_sucess= NonBlockingClient::get_inst().connectToServer();
+                WideCharToMultiByte(CP_UTF8, 0, ID_T.T_input, -1, &result[0], len, nullptr, nullptr);
+                NonBlockingClient::get_inst().sendLoginPacket(result);
+              
+              //  scene_change(PLAY_SCENE);
             }
             if (!_caret.select) {
                 if (wParam == VK_BACK) {

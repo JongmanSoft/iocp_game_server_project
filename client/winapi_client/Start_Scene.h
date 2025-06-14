@@ -27,6 +27,8 @@ public:
 
     s_caret _caret;
 
+    bool accept_sucess = false;
+
 public:
     Start_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC, void* fw);
     ~Start_Scene(); 

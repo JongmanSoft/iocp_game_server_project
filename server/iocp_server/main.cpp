@@ -19,9 +19,10 @@ void process_packet(int c_id, char* packet) {
 		//특수문자포함했는지확인
 		//이미 접속중인지 확인
 		//접속중이 아니라면,데이터베이스에 있는계정인지 확인
-		strcpy_s(c->_name, p->name);
+		std::cout << p->name << "이 들어옴!" << std::endl;
+		/*strcpy_s(c->_name, p->name);
 		DB_event dev = { DB_LOAD_INFO, c_id };
-		DBQ.push(dev);
+		DBQ.push(dev);*/
 		break;
 	}
 	case C2S_P_MOVE: {

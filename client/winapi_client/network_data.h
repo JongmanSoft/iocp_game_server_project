@@ -1,11 +1,14 @@
 #pragma once
 #include "stdafx.h"
+#include "Framework.h"
 
 class NonBlockingClient {
 private:
     NonBlockingClient() {};
     ~NonBlockingClient();
 public:
+    Framework* m_framwork;
+    void frame_work_recv(Framework* fw);
     void init(const std::string& server_ip, short port);
     
     static NonBlockingClient& get_inst() {
@@ -45,5 +48,8 @@ public:
 
     fd_set readSet, writeSet;
     timeval timeout = { 0, 10000 }; // 10ms е╦юс╬ф©Т
+
+
+
 
 };

@@ -1,5 +1,16 @@
 #include "stdafx.h"
 #include "Framework.h"
+#include "network_data.h"
+
+Framework::Framework(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC)
+{
+	m_hwnd = hwnd;
+	m_hBufferBitmap = hBufferBitmap;
+	m_hBufferDC = hBufferDC;
+	m_scene = std::make_unique<Start_Scene>(m_hwnd, m_hBufferBitmap, m_hBufferDC, this);
+
+	NonBlockingClient::get_inst().frame_work_recv(this);
+}
 
 Framework::~Framework()
 {

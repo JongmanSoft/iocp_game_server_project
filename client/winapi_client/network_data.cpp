@@ -5,6 +5,11 @@ NonBlockingClient::~NonBlockingClient()
 	disconnect();
 }
 
+void NonBlockingClient::frame_work_recv(Framework* fw)
+{
+    m_framwork = fw;
+}
+
 void NonBlockingClient::init(const std::string& server_ip, short port)
 {
 	server_ip_ = server_ip;
@@ -46,7 +51,6 @@ bool NonBlockingClient::connectToServer()
     }
 
     running_ = true;
-    networkThread_ = std::thread(&NonBlockingClient::processNetwork, this);
     return true;
 }
 
