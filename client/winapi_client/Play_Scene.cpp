@@ -72,6 +72,11 @@ Play_Scene::~Play_Scene()
 void Play_Scene::update()
 {
     player->state_ptr->update();
+    //다른 오브젝트들
+    for (const auto& pair : objects) {
+        std::shared_ptr<object> obj = pair.second.load();
+        obj->state_ptr->update();
+    }
 }
 
 void Play_Scene::network()
@@ -171,7 +176,7 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
             std::shared_ptr<object> obj = pair.second.load();
             obj->draw(m_hBufferDC,player->_x,player->_y);
         }
-
+        //나!
         player->draw(m_hBufferDC);
 
         // Profile UI
