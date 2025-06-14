@@ -182,6 +182,11 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
         // Profile UI
         {
+            HFONT hFont = CreateFont(14, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+                OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+                DEFAULT_PITCH | FF_DONTCARE, L"µÕ±Ù¸ð²Ã");
+            SelectObject(m_hBufferDC, hFont);
+
             profile_img.AlphaBlend(m_hBufferDC, 0, 0, window_size, window_size,
                 0, 0, profile_img.GetWidth(), profile_img.GetHeight(), 255, AC_SRC_OVER);
 
@@ -195,8 +200,7 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
             SetTextColor(m_hBufferDC, RGB(90, 37, 23));
             wchar_t wc[20];
-            mbstowcs(wc, player->_name, 20);
-            TextOut(m_hBufferDC, 137, 26, wc, lstrlen(wc));
+            TextOutA(m_hBufferDC, 137, 26, player->_name, strlen(player->_name));
 
             wsprintf(hp_text, L"%d", player->_level);
             TextOut(m_hBufferDC, 172, 51, hp_text, lstrlen(hp_text));
