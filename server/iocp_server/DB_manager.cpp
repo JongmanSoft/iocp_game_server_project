@@ -3,31 +3,83 @@
 DB_Handle DBH;
 concurrency::concurrent_queue <DB_event> DBQ;
 
+void PrintSQLError(SQLHANDLE handle, SQLSMALLINT handleType, const std::string& context)
+{
+	SQLWCHAR sqlState[6];
+	SQLINTEGER nativeError;
+	SQLWCHAR messageText[1024];
+	SQLSMALLINT messageLength;
+
+	SQLRETURN ret = SQLGetDiagRec(handleType, handle, 1, sqlState, &nativeError,
+		messageText, sizeof(messageText) / sizeof(SQLWCHAR), &messageLength);
+	if (SQL_SUCCEEDED(ret)) {
+		std::wcerr << L"Error in " << std::wstring(context.begin(), context.end())
+			<< L": SQLSTATE=" << sqlState
+			<< L", NativeError=" << nativeError
+			<< L", Message=" << messageText << std::endl;
+	}
+	else {
+		std::cerr << "Error in " << context << ": Failed to retrieve diagnostics" << std::endl;
+	}
+}
+
 void DB_init()
 {
-
-	//DB connect 
-	{
-		DBH.retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &DBH.henv);
-		if (DBH.retcode == SQL_SUCCESS || DBH.retcode == SQL_SUCCESS_WITH_INFO) {
-			DBH.retcode = SQLSetEnvAttr(DBH.henv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER*)SQL_OV_ODBC3, 0);
-
-			// Allocate connection handle  
-			if (DBH.retcode == SQL_SUCCESS || DBH.retcode == SQL_SUCCESS_WITH_INFO) {
-				DBH.retcode = SQLAllocHandle(SQL_HANDLE_DBC, DBH.henv, &DBH.hdbc);
-
-				// Set login timeout to 5 seconds  
-				if (DBH.retcode == SQL_SUCCESS || DBH.retcode == SQL_SUCCESS_WITH_INFO) {
-					SQLSetConnectAttr(DBH.hdbc, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0);
-
-					// Connect to data source  
-					DBH.retcode = SQLConnect(DBH.hdbc, (SQLWCHAR*)L"2022180029_termODBC", SQL_NTS, (SQLWCHAR*)NULL, 0, NULL, 0);
-
-
-				}
-			}
-		}
+	DBH.retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &DBH.henv);
+	if (!SQL_SUCCEEDED(DBH.retcode)) {
+		PrintSQLError(DBH.henv, SQL_HANDLE_ENV, "SQLAllocHandle (ENV)");
 	}
+
+	// 2. ODBC 버전 설정
+	DBH.retcode = SQLSetEnvAttr(DBH.henv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER)SQL_OV_ODBC3, 0);
+	if (!SQL_SUCCEEDED(DBH.retcode)) {
+		PrintSQLError(DBH.henv, SQL_HANDLE_ENV, "SQLSetEnvAttr");
+		SQLFreeHandle(SQL_HANDLE_ENV, DBH.henv);
+		DBH.henv = nullptr;
+	}
+
+	// 3. 연결 핸들 할당
+	DBH.retcode = SQLAllocHandle(SQL_HANDLE_DBC, DBH.henv, &DBH.hdbc);
+	if (!SQL_SUCCEEDED(DBH.retcode)) {
+		PrintSQLError(DBH.henv, SQL_HANDLE_ENV, "SQLAllocHandle (DBC)");
+		SQLFreeHandle(SQL_HANDLE_ENV, DBH.henv);
+		DBH.henv = nullptr;
+	}
+
+	// 4. 로그인 타임아웃 설정
+	DBH.retcode = SQLSetConnectAttr(DBH.hdbc, SQL_LOGIN_TIMEOUT, (SQLPOINTER)5, 0);
+	if (!SQL_SUCCEEDED(DBH.retcode)) {
+		PrintSQLError(DBH.hdbc, SQL_HANDLE_DBC, "SQLSetConnectAttr");
+		SQLFreeHandle(SQL_HANDLE_DBC, DBH.hdbc);
+		SQLFreeHandle(SQL_HANDLE_ENV, DBH.henv);
+		DBH.hdbc = nullptr;
+		DBH.henv = nullptr;
+	}
+
+	// 5. 데이터베이스 연결
+	DBH.retcode = SQLConnect(DBH.hdbc, (SQLWCHAR*)L"2022180029_termODBC", SQL_NTS,
+		(SQLWCHAR*)nullptr, 0, nullptr, 0);
+	if (!SQL_SUCCEEDED(DBH.retcode)) {
+		PrintSQLError(DBH.hdbc, SQL_HANDLE_DBC, "SQLConnect");
+		SQLFreeHandle(SQL_HANDLE_DBC, DBH.hdbc);
+		SQLFreeHandle(SQL_HANDLE_ENV, DBH.henv);
+		DBH.hdbc = nullptr;
+		DBH.henv = nullptr;
+	}
+
+	// 6. 문 핸들 할당
+	DBH.retcode = SQLAllocHandle(SQL_HANDLE_STMT, DBH.hdbc, &DBH.hstmt);
+	if (!SQL_SUCCEEDED(DBH.retcode)) {
+		PrintSQLError(DBH.hdbc, SQL_HANDLE_DBC, "SQLAllocHandle (STMT)");
+		SQLDisconnect(DBH.hdbc);
+		SQLFreeHandle(SQL_HANDLE_DBC, DBH.hdbc);
+		SQLFreeHandle(SQL_HANDLE_ENV, DBH.henv);
+		DBH.hdbc = nullptr;
+		DBH.henv = nullptr;
+	}
+
+	std::cout << "ODBC initialization and connection successful" << std::endl;
+
 
 }
 
@@ -35,6 +87,7 @@ void DB_thread()
 {
 	while (true)
 	{
+		
 		if (!DBQ.empty()) {
 			DB_event ev;
 			if (DBQ.try_pop(ev)) {
@@ -47,29 +100,81 @@ void DB_thread()
 				switch (ev.type)
 				{
 				case DB_LOAD_INFO: {
-					SQLWCHAR sql_query[] = L"{CALL select_user_info(?)}"; // Stored procedure call syntax
-					DBH.retcode = SQLBindParameter(DBH.hstmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 50, 0, wname, sizeof(wname), nullptr);
-					if (!SQL_SUCCEEDED(DBH.retcode)) {return;}
-					DBH.retcode = SQLExecDirect(DBH.hstmt, sql_query, SQL_NTS);
-					if (SQL_SUCCEEDED(DBH.retcode)) {
-						SQLWCHAR result_user_id[MAX_ID_LENGTH];
-						SQLINTEGER user_x, user_y,user_level,user_hp;
-						SQLLEN len_user_id = 0, len_user_x = 0, len_user_y = 0, len_user_level = 0, len_user_hp = 0;
-						SQLBindCol(DBH.hstmt, 1, SQL_C_WCHAR, result_user_id, 50, &len_user_id);
-						SQLBindCol(DBH.hstmt, 2, SQL_C_LONG, &user_x, 50, &len_user_x);
-						SQLBindCol(DBH.hstmt, 3, SQL_C_LONG, &user_y, 50, &len_user_y);
-						SQLBindCol(DBH.hstmt, 4, SQL_C_LONG, &user_level, 50, &len_user_level);
-						SQLBindCol(DBH.hstmt, 5, SQL_C_LONG, &user_hp, 50, &len_user_hp);
-						if (SQLFetch(DBH.hstmt) == SQL_SUCCESS) {
-							//기존유저일경우
-							std::lock_guard<std::mutex> ll{ c->_s_lock };
-						}
-						else {
-							// 새유저일경우
-							std::lock_guard<std::mutex> ll{ c->_s_lock };
-						}
+					if (!DBH.hstmt) {
+						std::cerr << "Invalid statement handle" << std::endl;
+						return;
+					}
+
+					SQLWCHAR sql_query[] = L"{CALL select_user_info(?)}";
+
+					// 파라미터 바인딩
+					SQLRETURN retcode = SQLBindParameter(DBH.hstmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR,
+						50, 0, (SQLPOINTER)wname, sizeof(wname), nullptr);
+					if (!SQL_SUCCEEDED(retcode)) {
+						PrintSQLError(DBH.hstmt, SQL_HANDLE_STMT, "SQLBindParameter");
+						return;
+					}
+
+					// 저장 프로시저 실행
+					retcode = SQLExecDirect(DBH.hstmt, sql_query, SQL_NTS);
+					if (!SQL_SUCCEEDED(retcode)) {
+						PrintSQLError(DBH.hstmt, SQL_HANDLE_STMT, "SQLExecDirect");
+						return;
+					}
+
+					// 결과 바인딩
+					SQLWCHAR result_user_id[MAX_ID_LENGTH];
+					SQLINTEGER user_x, user_y, user_level, user_hp;
+					SQLLEN len_user_id = 0, len_user_x = 0, len_user_y = 0, len_user_level = 0, len_user_hp = 0;
+
+					retcode = SQLBindCol(DBH.hstmt, 1, SQL_C_WCHAR, result_user_id, sizeof(result_user_id), &len_user_id);
+					if (!SQL_SUCCEEDED(retcode)) {
+						PrintSQLError(DBH.hstmt, SQL_HANDLE_STMT, "SQLBindCol (user_id)");
+						return;
+					}
+					retcode = SQLBindCol(DBH.hstmt, 2, SQL_C_LONG, &user_x, sizeof(SQLINTEGER), &len_user_x);
+					if (!SQL_SUCCEEDED(retcode)) {
+						PrintSQLError(DBH.hstmt, SQL_HANDLE_STMT, "SQLBindCol (user_x)");
+						return;
+					}
+					retcode = SQLBindCol(DBH.hstmt, 3, SQL_C_LONG, &user_y, sizeof(SQLINTEGER), &len_user_y);
+					if (!SQL_SUCCEEDED(retcode)) {
+						PrintSQLError(DBH.hstmt, SQL_HANDLE_STMT, "SQLBindCol (user_y)");
+						return;
+					}
+					retcode = SQLBindCol(DBH.hstmt, 4, SQL_C_LONG, &user_level, sizeof(SQLINTEGER), &len_user_level);
+					if (!SQL_SUCCEEDED(retcode)) {
+						PrintSQLError(DBH.hstmt, SQL_HANDLE_STMT, "SQLBindCol (user_level)");
+						return;
+					}
+					retcode = SQLBindCol(DBH.hstmt, 5, SQL_C_LONG, &user_hp, sizeof(SQLINTEGER), &len_user_hp);
+					if (!SQL_SUCCEEDED(retcode)) {
+						PrintSQLError(DBH.hstmt, SQL_HANDLE_STMT, "SQLBindCol (user_hp)");
+						return;
+					}
+
+					// 결과 페치
+					retcode = SQLFetch(DBH.hstmt);
+					if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+						//워커한테 보내줘야댐
+				        OVER_EXP* exover = new OVER_EXP;
+						exover->_comp_type = OP_DB_LOAD_USER;
+						exover->result_info.x = (int)user_x;
+						exover->result_info.y= (int)user_y;
+						exover->result_info.level = (int)user_level;
+						exover->result_info.hp = (int)user_hp;
+						PostQueuedCompletionStatus(h_iocp, 1 ,c->_id, &exover->_over);
+					}
+					else if (retcode == SQL_NO_DATA) {
+						OVER_EXP* exover = new OVER_EXP;
+						exover->_comp_type = OP_DB_NEW_USER;
+						PostQueuedCompletionStatus(h_iocp, 1, c->_id, &exover->_over);
+					}
+					else {
+						PrintSQLError(DBH.hstmt, SQL_HANDLE_STMT, "SQLFetch");
 
 					}
+					SQLCloseCursor(DBH.hstmt);
 				}
 					break;
 				case DB_SAVE_XY: {
@@ -89,7 +194,6 @@ void DB_thread()
 			}
 		}
 		
-		this_thread::sleep_for(1ms);
 	}
 }
 

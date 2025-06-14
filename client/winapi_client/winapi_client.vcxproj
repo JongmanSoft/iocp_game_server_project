@@ -158,6 +158,7 @@
     <ClInclude Include="network_data.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="Play_Scene.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="sprite_data.h" />
     <ClInclude Include="Start_Scene.h" />
@@ -167,6 +168,9 @@
   <ItemGroup>
     <Image Include="image\tileset.png" />
     <Image Include="image\title.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="winapi_client.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

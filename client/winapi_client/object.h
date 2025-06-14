@@ -22,6 +22,9 @@ public:
 	object(int type, int x, int y) :_type{ type }, _x{ x }, _y{ y } {
 		state_ptr = std::make_unique<loop_state>(PLAYER, IDLE, this);
 	};
-
+	object(int type, int x, int y,int level , int hp,char name[MAX_ID_LENGTH]) :_type{type}, _x{x}, _y{y}, _level{level}, _hp{hp} {
+		strcpy_s(_name, name);
+		state_ptr = std::make_unique<loop_state>(PLAYER, IDLE, this);
+	};
 };
 

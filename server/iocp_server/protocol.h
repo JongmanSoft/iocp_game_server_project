@@ -1,5 +1,5 @@
 #pragma once
-
+#define MAX_HP(level) 80+(level*20)
 constexpr short GAME_PORT = 3000;
 
 constexpr short BUF_SIZE = 200;
@@ -33,8 +33,9 @@ constexpr char MOVE_RIGHT = 4;
 constexpr unsigned short MAP_HEIGHT = 2000;
 constexpr unsigned short MAP_WIDTH = 2000;
 
-constexpr unsigned short init_x = 1040;
-constexpr unsigned short init_y = 1028;
+constexpr unsigned short init_x = 1050;
+constexpr unsigned short init_y = 1038;
+
 
 
 #pragma pack (push, 1)
@@ -42,6 +43,7 @@ constexpr unsigned short init_y = 1028;
 struct sc_packet_avatar_info {
 	unsigned char size;
 	char type;
+	char name[MAX_ID_LENGTH];
 	long long  id;
 	short x, y;
 	short max_hp;

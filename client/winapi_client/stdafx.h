@@ -10,6 +10,7 @@
 #include <string>
 #include <chrono>
 #include <thread>
+#include <memory>
 #include <queue>
 #include <functional>
 #include <mutex>

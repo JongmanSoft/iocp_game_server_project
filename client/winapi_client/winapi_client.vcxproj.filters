@@ -89,6 +89,9 @@
     <ClInclude Include="network_data.h">
       <Filter>소스 파일\data</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="image\title.png">
@@ -97,5 +100,10 @@
     <Image Include="image\tileset.png">
       <Filter>리소스 파일</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="winapi_client.rc">
+      <Filter>리소스 파일</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

@@ -19,10 +19,9 @@ void process_packet(int c_id, char* packet) {
 		//특수문자포함했는지확인
 		//이미 접속중인지 확인
 		//접속중이 아니라면,데이터베이스에 있는계정인지 확인
-		std::cout << p->name << "이 들어옴!" << std::endl;
-		/*strcpy_s(c->_name, p->name);
+		strcpy_s(c->_name, p->name);
 		DB_event dev = { DB_LOAD_INFO, c_id };
-		DBQ.push(dev);*/
+		DBQ.push(dev);
 		break;
 	}
 	case C2S_P_MOVE: {
@@ -30,10 +29,10 @@ void process_packet(int c_id, char* packet) {
 		short x = c->x;
 		short y = c->y;
 		switch (p->direction) {
-		case 0: if (y > 0) y--; break;
-		case 1: if (y < MAP_HEIGHT - 1) y++; break;
-		case 2: if (x > 0) x--; break;
-		case 3: if (x < MAP_WIDTH - 1) x++; break;
+		case MOVE_UP: if (y > 0) y--; break;
+		case MOVE_DOWN: if (y < MAP_HEIGHT - 1) y++; break;
+		case MOVE_LEFT: if (x > 0) x--; break;
+		case MOVE_RIGHT: if (x < MAP_WIDTH - 1) x++; break;
 		}
 		if (get_sector_index(c->x, c->y) == get_sector_index(x, y))
 		{
@@ -68,8 +67,8 @@ void process_packet(int c_id, char* packet) {
 		}
 		auto old_vlist = c->_view_list;
 		//DB에 이동저장 요청
-		DB_event dev = { DB_SAVE_XY, c_id };
-		DBQ.push(dev);
+		//DB_event dev = { DB_SAVE_XY, c_id };
+		//DBQ.push(dev);
 		c->send_move_packet(c_id);
 
 		for (auto& pl : near_list) {
@@ -173,8 +172,44 @@ void worker_thread(HANDLE h_iocp)
 		case OP_SEND:
 			delete ex_over;
 			break;
-		
-		
+		case OP_DB_LOAD_USER: {
+
+			std::wcout << L"Existing account: ID=" << ex_over->result_info.uid
+				<< L", X=" << (int)ex_over->result_info.x << L", Y=" << (int)ex_over->result_info.y
+				<< L", Level=" << (int)ex_over->result_info.level << L", HP=" << (int)ex_over->result_info.hp << std::endl;
+			auto it = object.find(key);
+			if (it == object.end()) break;
+			shared_ptr <USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
+			{
+				lock_guard<mutex> ll{ c->_s_lock };
+				c->x = ex_over->result_info.x;
+				c->y = ex_over->result_info.y;
+				c->_level = ex_over->result_info.level;
+				c->_hp = ex_over->result_info.hp;
+				c->_state = ST_INGAME;
+			}
+			c->send_login_info_packet();
+		}
+			
+			break;
+		case OP_DB_NEW_USER: {
+			std::wcout << L"NEW_USER!" << std::endl;
+			auto it = object.find(key);
+			if (it == object.end()) break;
+			shared_ptr <USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
+			{
+				lock_guard<mutex> ll{ c->_s_lock };
+				c->x = init_x;
+				c->y = init_y;
+				c->_level = 1;
+				c->_hp = 100;
+				c->_state = ST_INGAME;
+			}
+			c->send_login_info_packet();
+
+		}
+			
+			break;
 		}
 	}
 
@@ -191,9 +226,10 @@ int main() {
 		worker_threads.emplace_back(worker_thread, h_iocp);
 
 	thread timer_thread{ Do_Timer };
-	timer_thread.join();
-
 	thread db_thread{ DB_thread };
+
+	std::cout << "준비끝!" << std::endl;
+	timer_thread.join();
 	db_thread.join();
 
 	for (auto& th : worker_threads)

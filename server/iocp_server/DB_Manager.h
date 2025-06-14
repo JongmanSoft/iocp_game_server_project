@@ -22,7 +22,7 @@ extern DB_Handle DBH;
 
 extern concurrency::concurrent_queue <DB_event> DBQ;
 
-
+void PrintSQLError(SQLHANDLE handle, SQLSMALLINT handleType, const std::string& context);
 
 void DB_init(); //DB핸들 초기화, DB연결
 

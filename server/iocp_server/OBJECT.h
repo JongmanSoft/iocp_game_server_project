@@ -34,6 +34,10 @@ public:
 	int		last_move_time;
 
 public:
+	int _level =1;
+	int _hp = 100;
+	int _exp = 0;
+public:
 	USER(int new_id, SOCKET new_s, S_STATE new_st) :OBJECT(new_id,new_st), _socket{ new_s }
 	{
 		last_move_time = 0;

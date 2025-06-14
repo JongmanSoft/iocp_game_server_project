@@ -118,11 +118,15 @@ void USER::send_login_fail_packet(int reason)
 void USER::send_login_info_packet()
 {
 	sc_packet_avatar_info p;
-	p.id = _id;
-	p.size = sizeof(S2C_P_AVATAR_INFO);
+	p.size = sizeof(sc_packet_avatar_info);  // 구조체 크기로 수정
 	p.type = S2C_P_AVATAR_INFO;
+	p.id = _id;
+	strcpy_s(p.name, _name);
 	p.x = x;
 	p.y = y;
+	p.level = _level;
+	p.hp = _hp;
+	
 	do_send(&p);
 }
 

@@ -54,3 +54,23 @@ LRESULT Framework::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 	if (m_scene != nullptr) m_scene->windowproc(hwnd, uMsg, wParam, lParam);
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
+
+void Framework::move_packet_process(sc_packet_move p)
+{
+	Play_Scene* scene = static_cast<Play_Scene*>(m_scene.get());
+	scene->player->_x =  p.x;
+	scene->player->_y =  p.y;
+
+}
+
+void Framework::add_packet_process(sc_packet_enter)
+{
+}
+
+void Framework::leave_packet_process(sc_packet_leave)
+{
+}
+
+void Framework::stat_change_packet_process(sc_packet_stat_change)
+{
+}
