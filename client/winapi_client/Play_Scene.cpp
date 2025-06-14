@@ -16,7 +16,7 @@ Play_Scene::Play_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC, void* fw
     Framework* FW = (Framework*)m_fw;
     player = std::make_unique<object>(PLAYER, 
         FW->player_login_info.x, FW->player_login_info.y, 
-        FW->player_login_info.level, FW->player_login_info.hp,
+        FW->player_login_info.level,FW->player_login_info.hp,
         FW->player_login_info.name
         );
 
@@ -164,6 +164,12 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
                         16, 16, 255, AC_SRC_OVER);
                 }
             }
+        }
+
+        //다른 오브젝트들
+        for (const auto& pair : objects) {
+            std::shared_ptr<object> obj = pair.second.load();
+            obj->draw(m_hBufferDC,player->_x,player->_y);
         }
 
         player->draw(m_hBufferDC);

@@ -8,6 +8,108 @@ HANDLE h_iocp;
 SOCKET g_s_socket, g_c_socket;
 OVER_EXP g_a_over;
 
+
+void load_view_list(int c_id) {
+	auto it = object.find(c_id);
+	if (it == object.end()) return;
+	std::shared_ptr<USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
+	std::pair<int, int>index = get_sector_index(c->x, c->y);
+	std::pair<int, int> min_index = { max(0,index.first - 1), max(0,index.second - 1) };
+	std::pair<int, int> max_index = {
+		min(MAP_HEIGHT / SECTOR_SIZE - 1,index.first + 1),
+			min(MAP_WIDTH / SECTOR_SIZE - 1,index.second + 1) };
+
+	for (int row = min_index.first; row < max_index.first + 1; row++) {
+		for (int col = min_index.second; col < max_index.second + 1; col++) {
+			concurrency::concurrent_unordered_set<int> local_list;
+			{
+				std::lock_guard<std::mutex> ll(g_sector_mutexes[row][col]);
+				local_list = g_sectors[row][col];
+			}
+
+			for (const int& p_id : local_list) {
+				shared_ptr<OBJECT>p = object.at(p_id);
+				{
+					lock_guard<mutex> ll(p->_s_lock);
+					if (ST_INGAME != p->_state) continue;
+				}
+				if (p->_id == c_id) continue;
+				if (false == can_see(c_id, p->_id))
+					continue;
+				if (is_pc(p->_id)) {
+					shared_ptr <USER> PP = std::dynamic_pointer_cast<USER>(p);
+					PP->send_add_player_packet(c_id);
+				} 
+				c->send_add_player_packet(p->_id);
+				if (is_npc(p->_id)) {
+					//if (can_see(p->_id, c_id))WakeUpNPC(p->_id, c_id);
+				}
+			}
+		}
+	}
+}
+
+void update_view_list(int c_id) {
+	auto it = object.find(c_id);
+	if (it == object.end()) return;
+	std::shared_ptr<USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
+
+	std::pair<int, int> centre_index = get_sector_index(c->x, c->y);
+	unordered_set<int> near_list;
+	std::pair<int, int> min_index = { max(0,centre_index.first - 1), max(0,centre_index.second - 1) };
+	std::pair<int, int> max_index = { min(MAP_HEIGHT / SECTOR_SIZE - 1 ,centre_index.first + 1),min(MAP_WIDTH / SECTOR_SIZE - 1,centre_index.second + 1) };
+
+	for (int row = min_index.first; row < max_index.first + 1; row++) {
+		for (int col = min_index.second; col < max_index.second + 1; col++) {
+			concurrency::concurrent_unordered_set<int> local_list;
+			{
+				std::lock_guard<std::mutex> ll(g_sector_mutexes[row][col]);
+				local_list = g_sectors[row][col];
+			}
+
+			for (auto& cl : local_list) {
+				shared_ptr<OBJECT>p = object.at(cl);
+				if (p->_state != ST_INGAME) continue;
+				if (p->_id == c_id) continue;
+				if (can_see(c_id, p->_id))
+					near_list.insert(p->_id);
+			}
+		}
+	}
+
+	auto old_vlist = c->_view_list;
+
+
+	for (auto& pl : near_list) {
+		shared_ptr<OBJECT>cpll = object.at(pl);
+		auto cpl = std::dynamic_pointer_cast<USER>(cpll);
+		if (cpl) { 
+
+			if (cpl->_view_list.count(c_id)) { //상대방뷰리스트에 내가 있다면
+				cpl->send_move_packet(c_id);
+			}
+			else {
+				cpl->send_add_player_packet(c_id);
+			}
+		}
+		else  //WakeUpNPC(cpl->_id, c_id);
+			if (old_vlist.count(pl) == 0) {
+				c->send_add_player_packet(pl);
+				//if (is_npc(cpl->_id)) WakeUpNPC(cpl->_id, c_id);
+			}
+	}
+	for (auto& pl : old_vlist)
+		if (0 == near_list.count(pl)) {
+			auto it = object.find(pl); if (it == object.end()) break;
+			shared_ptr <USER> cpl = std::dynamic_pointer_cast<USER>(it->second.load());
+			c->send_remove_player_packet(pl);
+			if (!cpl) {
+				continue;
+			}
+			cpl->send_remove_player_packet(c_id);
+		}
+}
+
 void process_packet(int c_id, char* packet) {
 	auto it = object.find(c_id);
 	if (it == object.end()) return;
@@ -43,64 +145,12 @@ void process_packet(int c_id, char* packet) {
 			c->x = x; c->y = y;
 			insert_sector(c->_id, c->x, c->y);
 		}
-		std::pair<int, int> centre_index = get_sector_index(c->x, c->y);
-		unordered_set<int> near_list;
-		std::pair<int, int> min_index = { max(0,centre_index.first - 1), max(0,centre_index.second - 1) };
-		std::pair<int, int> max_index = { min(MAP_HEIGHT / SECTOR_SIZE - 1 ,centre_index.first + 1),min(MAP_WIDTH / SECTOR_SIZE - 1,centre_index.second + 1) };
-
-		for (int row = min_index.first; row < max_index.first + 1; row++) {
-			for (int col = min_index.second; col < max_index.second + 1; col++) {
-				concurrency::concurrent_unordered_set<int> local_list;
-				{
-					std::lock_guard<std::mutex> ll(g_sector_mutexes[row][col]);
-					local_list = g_sectors[row][col];
-				}
-
-				for (auto& cl : local_list) {
-					shared_ptr<OBJECT>p = object.at(cl);
-					if (p->_state != ST_INGAME) continue;
-					if (p->_id == c_id) continue;
-					if (can_see(c_id, p->_id))
-						near_list.insert(p->_id);
-				}
-			}
-		}
-		auto old_vlist = c->_view_list;
 		//DB에 이동저장 요청
 		//DB_event dev = { DB_SAVE_XY, c_id };
 		//DBQ.push(dev);
 		c->send_move_packet(c_id);
-
-		for (auto& pl : near_list) {
-			shared_ptr<OBJECT>cpll = object.at(pl);
-			auto cpl = std::dynamic_pointer_cast<USER>(cpll);
-			if (cpl) {
-				if (cpl->_view_list.count(c_id)) {
-					cpl->send_move_packet(c_id);
-				}
-				else {
-					cpl->send_add_player_packet(c_id);
-				}
-			}
-			else  //WakeUpNPC(cpl->_id, c_id);
-
-			if (old_vlist.count(pl) == 0) {
-				c->send_add_player_packet(pl);
-				//if (is_npc(cpl->_id)) WakeUpNPC(cpl->_id, c_id);
-			}
-
+		update_view_list(c_id);
 		}
-
-		for (auto& pl : old_vlist)
-			if (0 == near_list.count(pl)) {
-				auto it = object.find(pl); if (it == object.end()) break;
-				shared_ptr <USER> cpl = std::dynamic_pointer_cast<USER>(it->second.load());
-				c->send_remove_player_packet(pl);
-				if (!cpl) {	continue;
-				}
-				cpl->send_remove_player_packet(c_id);
-			}
-	}
 				break;
 	}
 }
@@ -187,8 +237,10 @@ void worker_thread(HANDLE h_iocp)
 				c->_level = ex_over->result_info.level;
 				c->_hp = ex_over->result_info.hp;
 				c->_state = ST_INGAME;
+				insert_sector(c->_id, c->x, c->y);
 			}
 			c->send_login_info_packet();
+			//update_view_list(c->_id);
 		}
 			
 			break;
@@ -204,9 +256,10 @@ void worker_thread(HANDLE h_iocp)
 				c->_level = 1;
 				c->_hp = 100;
 				c->_state = ST_INGAME;
+				insert_sector(c->_id, c->x, c->y);
 			}
 			c->send_login_info_packet();
-
+			load_view_list(c->_id);
 		}
 			
 			break;

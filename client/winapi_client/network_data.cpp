@@ -204,7 +204,8 @@ void NonBlockingClient::handleReceivedPacket(const char* buffer, size_t size)
         m_framwork->player_login_info.y = packet->y;
         m_framwork->player_login_info.level = packet->level;
         m_framwork->player_login_info.hp = packet->hp;
-   
+        m_framwork->player_login_info.id = packet->id;
+ 
         m_framwork->scene_change(PLAY_SCENE);
 
         if (packetHandler_) {
@@ -233,6 +234,7 @@ void NonBlockingClient::handleReceivedPacket(const char* buffer, size_t size)
     case S2C_P_LEAVE: {
         if (size < sizeof(sc_packet_leave)) return;
         const sc_packet_leave* packet = reinterpret_cast<const sc_packet_leave*>(buffer);
+        m_framwork->leave_packet_process(*packet);
         if (packetHandler_) {
             packetHandler_(buffer, size);
         }

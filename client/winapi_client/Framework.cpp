@@ -2,6 +2,8 @@
 #include "Framework.h"
 #include "network_data.h"
 
+
+
 Framework::Framework(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC)
 {
 	m_hwnd = hwnd;
@@ -58,19 +60,37 @@ LRESULT Framework::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 void Framework::move_packet_process(sc_packet_move p)
 {
 	Play_Scene* scene = static_cast<Play_Scene*>(m_scene.get());
-	scene->player->_x =  p.x;
-	scene->player->_y =  p.y;
+	if (p.id == player_login_info.id) {
+		player_login_info.x = p.x;
+		player_login_info.y = p.y;
+		scene->player->_x = p.x;
+		scene->player->_y = p.y;
+		return;
+	}
+	auto c = scene->objects.find(p.id);
+	if (c == scene->objects.end()) return;
+	std::shared_ptr <object> obj = c->second.load();
+	obj->_x = p.x;
+	obj->_y = p.y;
 
 }
 
-void Framework::add_packet_process(sc_packet_enter)
+void Framework::add_packet_process(sc_packet_enter p)
 {
+	Play_Scene* scene = static_cast<Play_Scene*>(m_scene.get());
+	
+	std::shared_ptr<object> obj = std::make_shared<object>(p.o_type, p.x, p.y, p.name);
+	scene->objects.insert(std::make_pair(p.id, obj));
+	
 }
 
-void Framework::leave_packet_process(sc_packet_leave)
+void Framework::leave_packet_process(sc_packet_leave p )
 {
+	Play_Scene* scene = static_cast<Play_Scene*>(m_scene.get());
+	scene->objects.erase(p.id);
 }
 
 void Framework::stat_change_packet_process(sc_packet_stat_change)
 {
+
 }

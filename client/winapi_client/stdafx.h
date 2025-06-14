@@ -13,6 +13,7 @@
 #include <memory>
 #include <queue>
 #include <functional>
+#include <unordered_map>
 #include <mutex>
 #include <atlimage.h>
 #include "fmod.hpp"
@@ -29,14 +30,3 @@
 using namespace FMOD;
 #pragma comment(lib, "gdiplus.lib")
 #pragma comment(lib, "Ws2_32.lib")
-//type, state
-constexpr int PLAYER = 0;
-constexpr int ORC_NPC = 1;
-constexpr int HUMAN = 2;
-constexpr int S_HUMAN = 3;
-
-constexpr int IDLE = 0;
-constexpr int WALK = 1;
-constexpr int HURT = 2;
-constexpr int ATTACK = 3;
-constexpr int DEATH = 4;

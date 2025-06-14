@@ -17,9 +17,10 @@ public:
     FMOD::Sound* g_death = nullptr;
     FMOD::Channel* g_channel = nullptr;
 
-   // POINT camera_pos = { 1040,1028 };
+ 
 
     std::unique_ptr<object> player;
+    std::unordered_map<long long, std::atomic<std::shared_ptr<object>>> objects;
 public:
     HWND hEdit;
 public:

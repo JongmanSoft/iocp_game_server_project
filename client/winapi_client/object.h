@@ -17,6 +17,7 @@ public:
 	std::unique_ptr <state> state_ptr;
 public:
 	void draw(HDC m_hBufferDC);
+	void draw(HDC m_hBufferDC, int px, int py);
 	void change_state(int state_type, int dir);
 public:
 	object(int type, int x, int y) :_type{ type }, _x{ x }, _y{ y } {
@@ -25,6 +26,10 @@ public:
 	object(int type, int x, int y,int level , int hp,char name[MAX_ID_LENGTH]) :_type{type}, _x{x}, _y{y}, _level{level}, _hp{hp} {
 		strcpy_s(_name, name);
 		state_ptr = std::make_unique<loop_state>(PLAYER, IDLE, this);
+	};
+	object(int type, int x, int y, char name[MAX_ID_LENGTH]) :_type{ type }, _x{ x }, _y{ y } {
+		strcpy_s(_name, name);
+		state_ptr = std::make_unique<loop_state>(type, IDLE, this);
 	};
 };
 

@@ -2,7 +2,12 @@
 
 void object::draw(HDC m_hBufferDC)
 {
-	state_ptr->render(m_hBufferDC, _x, _y);
+	state_ptr->render(m_hBufferDC);
+}
+
+void object::draw(HDC m_hBufferDC, int px, int py)
+{
+	state_ptr->render(m_hBufferDC,_x,_y,px,py);
 }
 
 void object::change_state(int state_type, int dir)

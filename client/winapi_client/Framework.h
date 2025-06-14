@@ -3,6 +3,8 @@
 #include "Start_Scene.h"
 #include "Play_Scene.h"
 
+
+
 struct login_info
 {
 	char name[MAX_ID_LENGTH];
@@ -14,6 +16,8 @@ struct login_info
 	int   exp;
 };
 
+
+
 class Framework
 {
 
@@ -22,9 +26,7 @@ public:
 	HWND m_hwnd;
 	HBITMAP m_hBufferBitmap;
 	HDC m_hBufferDC;
-
 	login_info player_login_info;
-
 public:
 	Framework(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC);
 	~Framework();

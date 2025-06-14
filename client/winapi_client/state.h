@@ -1,6 +1,8 @@
 #pragma once
 #include "stdafx.h"
 #include "sprite_data.h"
+
+
 class state
 {
 public:
@@ -107,17 +109,21 @@ public:
 			break;
 		}
 	};
-	int render_pos_get(int pos) {
-		int r = MAP_CULLING/2;
-		if (pos < MAP_CULLING / 2) r = pos;
-		if (pos > (MAP_SIZE - MAP_CULLING / 2)) r = MAP_CULLING-((MAP_SIZE) - pos);
-		return r;
+
+	int relation_pos_get(int pos,int ppos) {
+		return pos - (ppos - (MAP_CULLING / 2));
 	}
-	void render(HDC m_hBufferDC, int x, int y) {
+	void render(HDC m_hBufferDC) {
+		int render_x =  MAP_CULLING / 2 ;
+		int render_y =  MAP_CULLING / 2 ;
+		img->AlphaBlend(m_hBufferDC, render_x * 32 - 16, render_y * 32 - 16, 64, 64,
+			current_frame * 64, dir * 64, 64, 64, 255, AC_SRC_OVER);
+	};
 
-		int render_x = render_pos_get(x);
-		int render_y = render_pos_get(y);
-
+	void render(HDC m_hBufferDC, int x, int y,int px,int py) {
+		int render_x = relation_pos_get(x,px);
+		int render_y = relation_pos_get(y,py);
+	   
 	img->AlphaBlend(m_hBufferDC,render_x*32-16,render_y*32-16,64,64,
 	current_frame*64,dir*64,64,64, 255, AC_SRC_OVER);
 	};

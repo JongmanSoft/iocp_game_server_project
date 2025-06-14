@@ -36,7 +36,17 @@ constexpr unsigned short MAP_WIDTH = 2000;
 constexpr unsigned short init_x = 1050;
 constexpr unsigned short init_y = 1038;
 
+//type, state
+constexpr int PLAYER = 0;
+constexpr int ORC_NPC = 1;
+constexpr int HUMAN = 2;
+constexpr int S_HUMAN = 3;
 
+constexpr int IDLE = 0;
+constexpr int WALK = 1;
+constexpr int HURT = 2;
+constexpr int ATTACK = 3;
+constexpr int DEATH = 4;
 
 #pragma pack (push, 1)
 

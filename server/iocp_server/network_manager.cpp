@@ -140,6 +140,7 @@ void USER::send_add_player_packet(int c_id)
 	strcpy_s(add_packet.name, c->_name);
 	add_packet.size = sizeof(add_packet);
 	add_packet.type = S2C_P_ENTER;
+	add_packet.o_type = PLAYER;
 	add_packet.x = c->x;
 	add_packet.y = c->y;
 	_view_list.insert(c_id);

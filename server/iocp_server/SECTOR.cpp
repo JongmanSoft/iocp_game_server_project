@@ -34,3 +34,14 @@ bool can_see(int from, int to)
 	shared_ptr<OBJECT>to_p = object.at(to);
 	return (abs(from_p->x - to_p->x) <= VIEW_RANGE) && abs(from_p->y - to_p->y) <= VIEW_RANGE;
 }
+
+bool is_pc(int object_id)
+{
+	return object_id < MAX_USER;
+}
+
+bool is_npc(int object_id)
+{
+	return !is_pc(object_id);
+}
+
