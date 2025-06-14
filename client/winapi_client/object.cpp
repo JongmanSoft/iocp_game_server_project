@@ -3,11 +3,19 @@
 void object::draw(HDC m_hBufferDC)
 {
 	state_ptr->render(m_hBufferDC);
+	mess_ptr->render(m_hBufferDC);
 }
 
 void object::draw(HDC m_hBufferDC, int px, int py)
 {
 	state_ptr->render(m_hBufferDC,_x,_y,px,py);
+	mess_ptr->render(m_hBufferDC, _x, _y, px, py);
+}
+
+void object::update()
+{
+	state_ptr->update();
+	mess_ptr->update();
 }
 
 void object::change_state(int state_type, int dir)

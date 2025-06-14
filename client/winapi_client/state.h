@@ -5,6 +5,8 @@
 
 class state
 {
+
+
 public:
 	int max_frame;
 	int current_frame =0;

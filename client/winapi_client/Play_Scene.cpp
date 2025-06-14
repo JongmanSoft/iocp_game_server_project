@@ -20,6 +20,7 @@ Play_Scene::Play_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC, void* fw
         FW->player_login_info.name
         );
 
+
     // Sound
     FMOD_RESULT result = FMOD::System_Create(&g_system);
     if (result == FMOD_OK) {
@@ -71,11 +72,11 @@ Play_Scene::~Play_Scene()
 
 void Play_Scene::update()
 {
-    player->state_ptr->update();
+    player->update();
     //다른 오브젝트들
     for (const auto& pair : objects) {
         std::shared_ptr<object> obj = pair.second.load();
-        obj->state_ptr->update();
+        obj->update();
     }
 }
 
@@ -211,6 +212,9 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     }
     case WM_KEYUP: {
         switch (wParam) {
+        case 65:
+            player->mess_ptr->mess_setting("너 늬긔야 인간맞으면 대답해봐");
+            break;
         case 66: // B
             change_state(ATTACK);
             break;

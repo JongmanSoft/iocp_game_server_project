@@ -36,6 +36,26 @@ void Map_data::csv_import(std::ifstream& file, int layer)
     }
 }
 
+void Map_data::csv_export()
+{
+    std::ofstream file("csv/collision_data.csv");
+    if (!file.is_open()) {
+        return;
+    }
+
+    for (size_t i = 0; i < 2000; ++i) {
+        for (size_t j = 0; j < 2000; ++j) {
+            file << _maps[j][i]._collision;
+            if (j < 1999) {
+                file << ",";
+            }
+        }
+        file << "\n";
+    }
+
+    file.close();
+}
+
 void Map_data::init()
 {
 

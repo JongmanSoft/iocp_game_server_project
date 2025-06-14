@@ -57,6 +57,9 @@
     <ClCompile Include="network_data.cpp">
       <Filter>소스 파일\data</Filter>
     </ClCompile>
+    <ClCompile Include="chat_mess.cpp">
+      <Filter>소스 파일\object</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -91,6 +94,9 @@
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="chat_mess.h">
+      <Filter>소스 파일\object</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

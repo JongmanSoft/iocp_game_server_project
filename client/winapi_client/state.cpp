@@ -20,3 +20,4 @@ void end_state::update()
 {
 	if(current_frame < max_frame-1)current_frame++;
 }
+

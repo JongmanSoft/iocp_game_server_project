@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="chat_mess.cpp" />
     <ClCompile Include="Framework.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map_data.cpp" />
@@ -153,6 +154,7 @@
     <ClCompile Include="state.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="chat_mess.h" />
     <ClInclude Include="Framework.h" />
     <ClInclude Include="Map_data.h" />
     <ClInclude Include="network_data.h" />

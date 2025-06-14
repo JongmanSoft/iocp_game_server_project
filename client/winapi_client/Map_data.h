@@ -27,6 +27,7 @@ public:
     }
     
     void csv_import(std::ifstream& file, int layer);
+    void csv_export();
     void init();
 
 };
