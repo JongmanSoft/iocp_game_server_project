@@ -184,9 +184,10 @@ void process_packet(int c_id, char* packet) {
 			c->x = x; c->y = y;
 			insert_sector(c->_id, c->x, c->y);
 		}
-		//DB에 이동저장 요청
-		//DB_event dev = { DB_SAVE_XY, c_id };
-		//DBQ.push(dev);
+	
+		DB_event dev = { DB_SAVE_XY, c_id };
+		DBQ.push(dev);
+
 		c->send_move_packet(c_id);
 		update_view_list(c_id);
 		}
@@ -284,7 +285,7 @@ void worker_thread(HANDLE h_iocp)
 				insert_sector(c->_id, c->x, c->y);
 			}
 			c->send_login_info_packet();
-			//update_view_list(c->_id);
+			load_view_list(c->_id);
 		}
 			
 			break;
@@ -304,6 +305,9 @@ void worker_thread(HANDLE h_iocp)
 			}
 			c->send_login_info_packet();
 			load_view_list(c->_id);
+			DB_event dev = { DB_CREATE_USER, c->_id };
+			DBQ.push(dev);
+
 		}
 			
 			break;

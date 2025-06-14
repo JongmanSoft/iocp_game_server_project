@@ -100,11 +100,7 @@ void DB_thread()
 				switch (ev.type)
 				{
 				case DB_LOAD_INFO: {
-					if (!DBH.hstmt) {
-						std::cerr << "Invalid statement handle" << std::endl;
-						return;
-					}
-
+				
 					SQLWCHAR sql_query[] = L"{CALL select_user_info(?)}";
 
 					// 파라미터 바인딩
@@ -128,30 +124,10 @@ void DB_thread()
 					SQLLEN len_user_id = 0, len_user_x = 0, len_user_y = 0, len_user_level = 0, len_user_hp = 0;
 
 					retcode = SQLBindCol(DBH.hstmt, 1, SQL_C_WCHAR, result_user_id, sizeof(result_user_id), &len_user_id);
-					if (!SQL_SUCCEEDED(retcode)) {
-						PrintSQLError(DBH.hstmt, SQL_HANDLE_STMT, "SQLBindCol (user_id)");
-						return;
-					}
 					retcode = SQLBindCol(DBH.hstmt, 2, SQL_C_LONG, &user_x, sizeof(SQLINTEGER), &len_user_x);
-					if (!SQL_SUCCEEDED(retcode)) {
-						PrintSQLError(DBH.hstmt, SQL_HANDLE_STMT, "SQLBindCol (user_x)");
-						return;
-					}
 					retcode = SQLBindCol(DBH.hstmt, 3, SQL_C_LONG, &user_y, sizeof(SQLINTEGER), &len_user_y);
-					if (!SQL_SUCCEEDED(retcode)) {
-						PrintSQLError(DBH.hstmt, SQL_HANDLE_STMT, "SQLBindCol (user_y)");
-						return;
-					}
 					retcode = SQLBindCol(DBH.hstmt, 4, SQL_C_LONG, &user_level, sizeof(SQLINTEGER), &len_user_level);
-					if (!SQL_SUCCEEDED(retcode)) {
-						PrintSQLError(DBH.hstmt, SQL_HANDLE_STMT, "SQLBindCol (user_level)");
-						return;
-					}
 					retcode = SQLBindCol(DBH.hstmt, 5, SQL_C_LONG, &user_hp, sizeof(SQLINTEGER), &len_user_hp);
-					if (!SQL_SUCCEEDED(retcode)) {
-						PrintSQLError(DBH.hstmt, SQL_HANDLE_STMT, "SQLBindCol (user_hp)");
-						return;
-					}
 
 					// 결과 페치
 					retcode = SQLFetch(DBH.hstmt);
@@ -178,15 +154,44 @@ void DB_thread()
 				}
 					break;
 				case DB_SAVE_XY: {
-					SQLWCHAR sql_query[] = L"{CALL update_user_xy(?)(?)(?)}"; // Stored procedure call syntax
-					SQLSMALLINT sx = c->x; SQLSMALLINT sy = c->y;
-					DBH.retcode = SQLBindParameter(DBH.hstmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 50, 0, wname, sizeof(wname), nullptr);
-					DBH.retcode = SQLBindParameter(DBH.hstmt, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &sx, sizeof(SQLINTEGER), nullptr);
-					DBH.retcode = SQLBindParameter(DBH.hstmt, 3, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &sy, sizeof(SQLINTEGER), nullptr);
-					DBH.retcode = SQLExecDirect(DBH.hstmt, sql_query, SQL_NTS);
-					if (SQL_SUCCEEDED(DBH.retcode)) {
-					
-					}
+					SQLWCHAR sql_query[] = L"{CALL update_user_xy(?, ?, ?)}"; 
+					SQLINTEGER sx = c->x; 
+					SQLINTEGER sy = c->y;
+					SQLRETURN retcode = SQLBindParameter(DBH.hstmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 50, 0, wname, sizeof(wname), nullptr);
+					retcode = SQLBindParameter(DBH.hstmt, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &sx, sizeof(SQLINTEGER), nullptr);
+					retcode = SQLBindParameter(DBH.hstmt, 3, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &sy, sizeof(SQLINTEGER), nullptr);
+					retcode = SQLExecDirect(DBH.hstmt, sql_query, SQL_NTS);
+					SQLCloseCursor(DBH.hstmt);
+					break;
+				}
+				case DB_CREATE_USER: {
+					SQLWCHAR sql_query[] = L"{CALL create_user(?, ?, ?)}"; 
+					SQLINTEGER sx = c->x; 
+					SQLINTEGER sy = c->y;
+					SQLRETURN retcode = SQLBindParameter(DBH.hstmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 50, 0, wname, sizeof(wname), nullptr);
+					retcode = SQLBindParameter(DBH.hstmt, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &sx, sizeof(SQLINTEGER), nullptr);
+					retcode = SQLBindParameter(DBH.hstmt, 3, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &sy, sizeof(SQLINTEGER), nullptr);
+					retcode = SQLExecDirect(DBH.hstmt, sql_query, SQL_NTS);
+					SQLCloseCursor(DBH.hstmt);
+					break;
+				}
+				case DB_SAVE_LEVEL: {
+					SQLWCHAR sql_query[] = L"{CALL update_user_level(?, ?)}"; 
+					SQLINTEGER slevel = c->_level; 
+					SQLRETURN retcode = SQLBindParameter(DBH.hstmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 50, 0, wname, sizeof(wname), nullptr);
+					retcode = SQLBindParameter(DBH.hstmt, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &slevel, sizeof(SQLINTEGER), nullptr);
+					retcode = SQLExecDirect(DBH.hstmt, sql_query, SQL_NTS);
+					SQLCloseCursor(DBH.hstmt);
+					break;
+				}
+				case DB_SAVE_HP: {
+					SQLWCHAR sql_query[] = L"{CALL update_user_hp(?, ?)}";
+					SQLINTEGER shp = c->_hp;
+					SQLRETURN retcode = SQLBindParameter(DBH.hstmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 50, 0, wname, sizeof(wname), nullptr);
+					retcode = SQLBindParameter(DBH.hstmt, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &shp, sizeof(SQLINTEGER), nullptr);
+					retcode = SQLExecDirect(DBH.hstmt, sql_query, SQL_NTS);
+					SQLCloseCursor(DBH.hstmt);
+					break;
 				}
 				default:
 					break;
