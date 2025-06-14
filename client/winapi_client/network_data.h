@@ -3,7 +3,7 @@
 
 class NonBlockingClient {
 private:
-    NonBlockingClient();
+    NonBlockingClient() {};
     ~NonBlockingClient();
 public:
     void init(const std::string& server_ip, short port);
@@ -31,7 +31,7 @@ public:
     void processNetwork();
     void handleReceivedPacket(const char* buffer, size_t size);
     void sendPendingPackets();
-
+            
     SOCKET socket_;
     std::string server_ip_;
     short port_;

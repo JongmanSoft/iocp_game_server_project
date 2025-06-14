@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Start_Scene.h"
+#include "network_data.h"
 
 Start_Scene::Start_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC, void* fw) {
     m_hwnd = hwnd;
@@ -79,6 +80,14 @@ LRESULT Start_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case WM_CHAR: {
             if (wParam == VK_RETURN) {
+                std::string result;
+                int len = WideCharToMultiByte(CP_UTF8, 0, IP_T.T_input, -1, nullptr, 0, nullptr, nullptr);
+                if (len > 0) {
+                    result.resize(len - 1);
+                    WideCharToMultiByte(CP_UTF8, 0, IP_T.T_input, -1, &result[0], len, nullptr, nullptr);
+                }
+                NonBlockingClient::get_inst().init(result,GAME_PORT);
+                NonBlockingClient::get_inst().connectToServer();
                 scene_change(PLAY_SCENE);
             }
             if (!_caret.select) {
