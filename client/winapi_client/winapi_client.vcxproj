@@ -144,6 +144,7 @@
     <ClCompile Include="Framework.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map_data.cpp" />
+    <ClCompile Include="network_data.cpp" />
     <ClCompile Include="object.cpp" />
     <ClCompile Include="Play_Scene.cpp" />
     <ClCompile Include="Scene.cpp" />
@@ -154,6 +155,7 @@
   <ItemGroup>
     <ClInclude Include="Framework.h" />
     <ClInclude Include="Map_data.h" />
+    <ClInclude Include="network_data.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="Play_Scene.h" />
     <ClInclude Include="Scene.h" />
