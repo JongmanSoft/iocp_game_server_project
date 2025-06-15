@@ -99,7 +99,8 @@ void update_view_list(int c_id) {
 			//WakeUpNPC(cpl->_id, c_id);
 		}
 		if (old_vlist.count(pl) == 0) {
-				c->send_add_player_packet(pl);
+			if (is_pc(pl))c->send_add_player_packet(pl);
+			else c->send_add_object_packet(pl);
 				//if (is_npc(cpl->_id)) WakeUpNPC(cpl->_id, c_id);
 		}
 	}
@@ -190,7 +191,10 @@ void update_chat(int c_id, const char* mess) {
 }
 
 void init_npc() {
-
+	for (int i = 0; i < 400; i++) {
+		shared_ptr <NPC> p = make_shared<NPC>(MAX_USER+i,HUMAN,i);
+		object.insert(make_pair(MAX_USER + i, p));
+	}
 }
 //
 bool User_InGame(std::string name) {

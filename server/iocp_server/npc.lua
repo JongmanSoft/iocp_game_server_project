@@ -36,10 +36,14 @@ function set_init_npc_(o_type, zone, collision_array)
         local rx = math.random(10, 80)
         local ry = math.random(40, 90)
         x, y = find_free_position(collision_array, rx, ry)
+        x = x+((zone & 20) * 100)
+        y = y+ (math.floor(zone / 20) * 100)
     elseif o_type == 3 then
         local rx = math.random(0, 90)
         local ry = math.random(0, 25)
         x, y = find_free_position(collision_array, rx, ry)
+        x = x+((zone & 20) * 100)
+        y = y+ (math.floor(zone / 20) * 100)
     end
     return x, y
 end

@@ -34,8 +34,5 @@ void ai_init()
             }
         }
     }
-
-    for (int i = 0; i < 10; i++) std::cout << collision_data[i][9] << ",";
-    std::cout << std::endl;
     
 }

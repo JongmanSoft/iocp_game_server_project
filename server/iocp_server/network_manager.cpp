@@ -54,13 +54,14 @@ void disconnect(int c_id)
 	for (auto& p_id : vl) {
 		auto it = object.find(p_id);
 		if (it == object.end()) continue;
-		shared_ptr<USER>pl = std::dynamic_pointer_cast<USER>(it->second.load());
+		shared_ptr<OBJECT>ol = it->second.load();
+		shared_ptr<USER>pl = std::dynamic_pointer_cast<USER>(ol);
 		{
-			lock_guard<mutex> ll(pl->_s_lock);
-			if (ST_INGAME != pl->_state) continue;
+			lock_guard<mutex> ll(ol->_s_lock);
+			if (ST_INGAME != ol->_state) continue;
 		}
-		if (pl->_id == c_id) continue;
-		pl->send_remove_object_packet(c_id);
+		if (ol->_id == c_id) continue;
+		if (pl)pl->send_remove_object_packet(c_id);
 	}
 	closesocket(c->_socket);
 
@@ -155,11 +156,12 @@ void USER::send_add_player_packet(int c_id)
 	add_packet.o_type = PLAYER;
 	add_packet.x = c->x;
 	add_packet.y = c->y;
+	add_packet.hp = c->_hp;
 	_view_list.insert(c_id);
 	do_send(&add_packet);
 }
 
-void USER::send_add_object_packet(int c_id, int o_type)
+void USER::send_add_object_packet(int c_id)
 {
 	auto it = object.find(c_id);
 	if (it == object.end()) return;
@@ -169,7 +171,7 @@ void USER::send_add_object_packet(int c_id, int o_type)
 	strcpy_s(add_packet.name, c->_name);
 	add_packet.size = sizeof(add_packet);
 	add_packet.type = S2C_P_ENTER;
-	add_packet.o_type = o_type;
+	add_packet.o_type = c->_o_type;
 	add_packet.x = c->x;
 	add_packet.y = c->y;
 	add_packet.hp = c->_hp;
