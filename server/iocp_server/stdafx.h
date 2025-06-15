@@ -8,6 +8,9 @@
 #include <array>
 #include <string.h>
 #include <thread>
+#include <fstream>
+#include <sstream>
+#include <string>
 #include <vector>
 #include <memory>
 #include <mutex>

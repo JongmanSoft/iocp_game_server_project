@@ -25,6 +25,9 @@
     <Filter Include="소스 파일\main">
       <UniqueIdentifier>{e1df9b33-6129-4a80-8798-49e386469e9a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\ai">
+      <UniqueIdentifier>{e5401ddd-b447-40f4-a179-e3dce05ff3ea}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="network_manager.h">
@@ -53,6 +56,9 @@
     </ClInclude>
     <ClInclude Include="global_data.h">
       <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ai_manager.h">
+      <Filter>소스 파일\ai</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -83,6 +89,9 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="ai_manager.cpp">
+      <Filter>소스 파일\ai</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="lua54.lib">
@@ -91,6 +100,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="npc.lua">
+      <Filter>리소스 파일</Filter>
+    </None>
+    <None Include="collision_data_small.csv">
       <Filter>리소스 파일</Filter>
     </None>
   </ItemGroup>

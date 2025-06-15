@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ai_manager.h" />
     <ClInclude Include="DB_Manager.h" />
     <ClInclude Include="global_data.h" />
     <ClInclude Include="network_manager.h" />
@@ -30,6 +31,7 @@
     <ClInclude Include="Timer_manager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ai_manager.cpp" />
     <ClCompile Include="DB_manager.cpp" />
     <ClCompile Include="global_data.cpp" />
     <ClCompile Include="main.cpp" />
@@ -44,6 +46,7 @@
     <Library Include="lua54.lib" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="collision_data_small.csv" />
     <None Include="npc.lua" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

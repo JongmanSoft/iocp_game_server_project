@@ -2,6 +2,7 @@
 #include "DB_Manager.h"
 #include "network_manager.h"
 #include "Timer_manager.h"
+#include "ai_manager.h"
 
 HANDLE h_iocp;
 
@@ -379,10 +380,12 @@ void worker_thread(HANDLE h_iocp)
 	}
 
 }
-
+ 
 int main() {
 
+	
 	DB_init();
+	ai_init();
 	network_init();
 	init_npc();
 
