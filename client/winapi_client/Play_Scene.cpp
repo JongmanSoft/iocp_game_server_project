@@ -185,11 +185,67 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         return 0;
     }
 
+    case WM_IME_COMPOSITION:
+    {
+        if (input_active) {
+            HIMC hIMC = ImmGetContext(hwnd);
+            if (hIMC) {
+                if (lParam & GCS_RESULTSTR) {
+                    // 완성된 문자열 가져오기
+                    DWORD dwSize = ImmGetCompositionString(hIMC, GCS_RESULTSTR, NULL, 0);
+                    if (dwSize > 0) {
+                        std::vector<WCHAR> buffer(dwSize / sizeof(WCHAR) + 1);
+                        ImmGetCompositionString(hIMC, GCS_RESULTSTR, &buffer[0], dwSize);
+                        buffer[dwSize / sizeof(WCHAR)] = 0;
+
+                        // 유니코드를 멀티바이트로 변환
+                        int len = WideCharToMultiByte(CP_ACP, 0, &buffer[0], -1, nullptr, 0, nullptr, nullptr);
+                        if (len > 0) {
+                            std::vector<char> mbBuffer(len);
+                            WideCharToMultiByte(CP_ACP, 0, &buffer[0], -1, &mbBuffer[0], len, nullptr, nullptr);
+
+                            // 입력된 문자를 chat_input에 추가
+                            std::string inputStr = &mbBuffer[0];
+                            if (chat_input.length() + inputStr.length() < max_input_chars) {
+                                chat_input.insert(cursor_pos, inputStr);
+                                cursor_pos += inputStr.length();
+                                InvalidateRect(hwnd, NULL, FALSE);
+                            }
+                        }
+                    }
+                }
+                ImmReleaseContext(hwnd, hIMC);
+            }
+        }
+        return 0;
+    }
+
+    case WM_IME_STARTCOMPOSITION:
+    {
+        if (input_active) {
+            // IME 조합 시작
+            return 0;
+        }
+        break;
+    }
+
+    case WM_IME_ENDCOMPOSITION:
+    {
+        if (input_active) {
+            // IME 조합 종료
+            return 0;
+        }
+        break;
+    }
+
     case WM_CHAR: {
         if (input_active && wParam >= 32 && wParam != VK_RETURN && chat_input.length() < max_input_chars) {
-            chat_input.insert(chat_input.begin() + cursor_pos, (char)wParam);
-            cursor_pos++;
-            InvalidateRect(hwnd, NULL, FALSE);
+            // ASCII 범위의 문자만 처리 (한글은 WM_IME_COMPOSITION에서 처리)
+            if (wParam < 128) {  // ASCII 문자만
+                chat_input.insert(cursor_pos, 1, (char)wParam);
+                cursor_pos++;
+                InvalidateRect(hwnd, NULL, FALSE);
+            }
         }
         return 0;
     }

@@ -1,7 +1,11 @@
 #pragma once
+
+
 #include "Scene.h"
 #include "Map_data.h"
 #include "object.h"
+
+
 class Play_Scene :
     public Scene
 {
@@ -39,11 +43,20 @@ private:
     const int chat_input_x = 36, chat_input_y = 517, chat_input_w = 150, chat_input_h = 20;
     const int max_input_chars = 255;
 
+    //std::wstring chat_input;
+    bool composition_active = false;
+    std::wstring composition_string;
+
+    // 유틸리티 함수 선언 추가
+    std::string WStringToUTF8(const std::wstring& wstr);
+    std::wstring UTF8ToWString(const std::string& str);
+
     // Send button
     const int send_button_x = 186, send_button_y = 517, send_button_w = 20, send_button_h = 20;
     HBRUSH chat_brush = nullptr; // Brush for chat input and button background
     HFONT chat_font = nullptr; // Font for chat log and input
     HFONT button_font = nullptr; // Font for send button
+
 public:
     Play_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC,HINSTANCE hinstance, void* fw);
     ~Play_Scene();

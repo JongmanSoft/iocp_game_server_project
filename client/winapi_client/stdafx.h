@@ -1,4 +1,5 @@
 #pragma once
+
 #include <winsock2.h> 
 #include <windows.h>
 #include <ws2tcpip.h>
@@ -18,7 +19,8 @@
 #include <atlimage.h>
 #include "fmod.hpp"
 #include "fmod_errors.h"
-
+#include <imm.h>
+#pragma comment(lib, "imm32.lib")
 
 #include "../../server/iocp_server/protocol.h"
 #define window_size 640
