@@ -29,9 +29,11 @@ end
 
 function set_init_npc_(o_type, zone, collision_array)
     local x, y
+    local row = math.floor(zone / 20)
+    local col = zone % 20
     if o_type == 1 then
-        x = 49 + ((zone & 20) * 100)
-        y = 34 + (math.floor(zone / 20) * 100)
+        x = 49 + (col * 100)
+        y = 34 + (row * 100)
     elseif o_type == 2 then
         local rx = math.random(10, 80)
         local ry = math.random(40, 90)

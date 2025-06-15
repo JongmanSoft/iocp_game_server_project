@@ -159,6 +159,6 @@ public:
 		lua_pop(L, 1); // collision_array 테이블 제거
 
 		insert_sector(_id, x, y); 
-		std::cout << id << "번 마을사람  :" << x << "," << y << std::endl;
+	
 	}
 };

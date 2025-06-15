@@ -41,8 +41,12 @@ void load_view_list(int c_id) {
 					shared_ptr <USER> PP = std::dynamic_pointer_cast<USER>(p);
 					PP->send_add_player_packet(c_id);
 				} 
-				c->send_add_player_packet(p->_id);
-				if (is_npc(p->_id)) {
+				
+				if (is_pc(p->_id)) {
+					c->send_add_player_packet(p->_id);
+				}
+				else {
+					c->send_add_object_packet(p->_id);
 					//if (can_see(p->_id, c_id))WakeUpNPC(p->_id, c_id);
 				}
 			}
@@ -192,7 +196,7 @@ void update_chat(int c_id, const char* mess) {
 
 void init_npc() {
 	for (int i = 0; i < 400; i++) {
-		shared_ptr <NPC> p = make_shared<NPC>(MAX_USER+i,HUMAN,i);
+		shared_ptr <NPC> p = make_shared<NPC>(MAX_USER+i,ORC_NPC,i);
 		object.insert(make_pair(MAX_USER + i, p));
 	}
 }
