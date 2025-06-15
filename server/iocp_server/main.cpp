@@ -94,7 +94,9 @@ void update_view_list(int c_id) {
 			
 		
 		}
-		else {}//WakeUpNPC(cpl->_id, c_id);
+		else { //npc일경우?
+			//WakeUpNPC(cpl->_id, c_id);
+		}
 		if (old_vlist.count(pl) == 0) {
 				c->send_add_player_packet(pl);
 				//if (is_npc(cpl->_id)) WakeUpNPC(cpl->_id, c_id);
@@ -104,11 +106,11 @@ void update_view_list(int c_id) {
 		if (0 == near_list.count(pl)) {
 			auto it = object.find(pl); if (it == object.end()) break;
 			shared_ptr <USER> cpl = std::dynamic_pointer_cast<USER>(it->second.load());
-			c->send_remove_player_packet(pl);
+			c->send_remove_object_packet(pl);
 			if (!cpl) {
 				continue;
 			}
-			cpl->send_remove_player_packet(c_id);
+			cpl->send_remove_object_packet(c_id);
 		}
 }
 
@@ -186,7 +188,9 @@ void update_chat(int c_id, const char* mess) {
 	}
 }
 
+void init_npc() {
 
+}
 //
 bool User_InGame(std::string name) {
 	for (const auto& user : object) {
@@ -194,6 +198,7 @@ bool User_InGame(std::string name) {
 		if (is_npc(u->_id))return false;
 		if (u->_name != name) continue;
 		if (u->_state == ST_INGAME) return true;
+		else break;
 	}
 	return false;
 }
@@ -208,7 +213,6 @@ void process_packet(int c_id, char* packet) {
 		if (hasSpecialChar(p->name)) { c->send_login_fail_packet(2); break; }
 		if (User_InGame(p->name)) { c->send_login_fail_packet(1); break; }
 		if (get_new_client_id() == -1) { c->send_login_fail_packet(3); break; }
-		//특수문자포함했는지확인
 		strcpy_s(c->_name, p->name);
 		DB_event dev = { DB_LOAD_INFO, c_id };
 		DBQ.push(dev);
@@ -380,6 +384,7 @@ int main() {
 
 	DB_init();
 	network_init();
+	init_npc();
 
 	vector <thread> worker_threads;
 	int num_threads = std::thread::hardware_concurrency();

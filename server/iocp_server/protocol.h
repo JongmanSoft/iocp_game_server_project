@@ -78,9 +78,9 @@ struct sc_packet_enter {
 	char type;
 	long long  id;
 	char name[MAX_ID_LENGTH];
-	char o_type; // 0 : PLAYER
-	// 1...  : NPC들  
+	char o_type;
 	short x, y;
+	short hp; //몬스터정보를 그리기위해 수정
 };
 
 struct sc_packet_leave {

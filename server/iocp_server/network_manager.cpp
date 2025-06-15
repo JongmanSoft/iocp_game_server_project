@@ -60,7 +60,7 @@ void disconnect(int c_id)
 			if (ST_INGAME != pl->_state) continue;
 		}
 		if (pl->_id == c_id) continue;
-		pl->send_remove_player_packet(c_id);
+		pl->send_remove_object_packet(c_id);
 	}
 	closesocket(c->_socket);
 
@@ -88,21 +88,21 @@ void USER::send_move_packet(int c_id)
 	do_send(&p);
 }
 
-void USER::send_remove_player_packet(int c_id)
+void USER::send_remove_object_packet(int c_id)
 {
-	
 	if (_view_list.count(c_id))
 		_view_list.unsafe_erase(c_id);
 	else {
 		return;
 	}
-	
 	sc_packet_leave p;
 	p.id = c_id;
 	p.size = sizeof(p);
 	p.type = S2C_P_LEAVE;
 	do_send(&p);
 }
+
+
 
 void USER::send_state_packet(int c_id,int state, char dir)
 {
@@ -155,6 +155,24 @@ void USER::send_add_player_packet(int c_id)
 	add_packet.o_type = PLAYER;
 	add_packet.x = c->x;
 	add_packet.y = c->y;
+	_view_list.insert(c_id);
+	do_send(&add_packet);
+}
+
+void USER::send_add_object_packet(int c_id, int o_type)
+{
+	auto it = object.find(c_id);
+	if (it == object.end()) return;
+	std::shared_ptr<NPC> c = std::dynamic_pointer_cast<NPC>(it->second.load());
+	sc_packet_enter add_packet;
+	add_packet.id = c_id;
+	strcpy_s(add_packet.name, c->_name);
+	add_packet.size = sizeof(add_packet);
+	add_packet.type = S2C_P_ENTER;
+	add_packet.o_type = o_type;
+	add_packet.x = c->x;
+	add_packet.y = c->y;
+	add_packet.hp = c->_hp;
 	_view_list.insert(c_id);
 	do_send(&add_packet);
 }

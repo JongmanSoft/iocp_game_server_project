@@ -38,7 +38,7 @@ void Map_data::csv_import(std::ifstream& file, int layer)
 
 void Map_data::csv_export()
 {
-    std::ofstream file("csv/collision_data.csv");
+    std::ofstream file("csv/collision_data_small.csv");
     if (!file.is_open()) {
         return;
     }
@@ -46,7 +46,7 @@ void Map_data::csv_export()
     for (size_t i = 0; i < 2000; ++i) {
         for (size_t j = 0; j < 2000; ++j) {
             file << _maps[j][i]._collision;
-            if (j < 1999) {
+            if (j < 99) {
                 file << ",";
             }
         }

@@ -17,6 +17,7 @@ public:
 	std::mutex _s_lock;
 	S_STATE _state;
 	short	x, y;
+	int _hp = 100;
 	char	_name[MAX_ID_LENGTH];
 
 public:
@@ -35,7 +36,7 @@ public:
 
 public:
 	int _level =1;
-	int _hp = 100;
+	
 	int _exp = 0;
 public:
 	USER(int new_id, SOCKET new_s, S_STATE new_st) :OBJECT(new_id,new_st), _socket{ new_s }
@@ -48,12 +49,14 @@ public:
 	void do_recv();
 	void do_send(void* packet);
 	void send_move_packet(int c_id);
-	void send_remove_player_packet(int c_id);
+	void send_remove_object_packet(int c_id);
+
 	void send_state_packet(int c_id,int state,char dir);
 
 	void send_login_fail_packet(int reason);
 	void send_login_info_packet();
 	void send_add_player_packet(int c_id);
+	void send_add_object_packet(int c_id, int o_type);
 	void send_chat_packet(int c_id, const char* mess);
 	
 };
@@ -85,5 +88,26 @@ public:
 		lua_pcall(L, 1, 0, 0);
 		lua_pop(L, 1);// eliminate set_uid from stack after call
 	}
+	NPC(int id,int o_type) {
+		//npc들만 쓸 생성자
+		x = rand() % MAP_WIDTH;
+		y = rand() % MAP_HEIGHT;
+		_id = id;
+		if (o_type == ORC_NPC)sprintf_s(_name, "%d번 오크", id);
+		if (o_type == HUMAN)sprintf_s(_name, "%d번 마을사람", id);
+		if (o_type == S_HUMAN)sprintf_s(_name, "%d번 전사", id);
+		
+		_state = ST_INGAME;
+		_is_active = false;
+		insert_sector(_id, x, y); //wake up할때 생각하면 npc도 섹터에 넣어야,,,
+		auto L = _L = luaL_newstate();
+		luaL_openlibs(L);
+		luaL_loadfile(L, "npc.lua");
+		lua_pcall(L, 0, 0, 0);
 
+		lua_getglobal(L, "set_uid");
+		lua_pushnumber(L, _id);
+		lua_pcall(L, 1, 0, 0);
+		lua_pop(L, 1);
+	}
 };
