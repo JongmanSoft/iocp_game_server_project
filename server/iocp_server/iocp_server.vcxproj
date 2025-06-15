@@ -37,6 +37,7 @@
     <ClCompile Include="OBJECT.cpp" />
     <ClCompile Include="OVER_EXP.cpp" />
     <ClCompile Include="SECTOR.cpp" />
+    <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="Timer_manager.cpp" />
   </ItemGroup>
   <ItemGroup>

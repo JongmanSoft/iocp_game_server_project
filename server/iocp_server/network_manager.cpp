@@ -120,7 +120,6 @@ void USER::send_state_packet(int c_id,int state, char dir)
 
 void USER::send_login_fail_packet(int reason)
 {
-	std::cout << "존재하지않는 아이디, 로그인실패" << std::endl;
 	sc_packet_login_fail p;
 	p.size = sizeof(p);
 	p.type = S2C_P_LOGIN_FAIL;

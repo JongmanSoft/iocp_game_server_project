@@ -51,9 +51,6 @@ Play_Scene::Play_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC, HINSTANC
     button_font = CreateFont(11, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
         OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
         DEFAULT_PITCH | FF_DONTCARE, L"둥근모꼴");
-
-
- 
 }
 
 Play_Scene::~Play_Scene()
@@ -187,9 +184,10 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         EndPaint(hwnd, &ps);
         return 0;
     }
+
     case WM_CHAR: {
         if (input_active && wParam >= 32 && wParam != VK_RETURN && chat_input.length() < max_input_chars) {
-            chat_input.insert(chat_input.begin() + cursor_pos, (wchar_t)wParam);
+            chat_input.insert(chat_input.begin() + cursor_pos, (char)wParam);
             cursor_pos++;
             InvalidateRect(hwnd, NULL, FALSE);
         }
@@ -251,7 +249,14 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
                 }
                 break;
             case VK_RETURN:
-        
+                // 채팅 전송 처리
+                if (!chat_input.empty()) {
+                    NonBlockingClient::get_inst().sendChatPacket(chat_input.c_str());
+                    chat_input.clear();
+                    cursor_pos = 0;
+                    input_scroll_offset = 0;
+                    InvalidateRect(hwnd, NULL, FALSE);
+                }
                 break;
             }
         }
@@ -302,9 +307,9 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
             int click_x = x - chat_input_x - 2 + input_scroll_offset;
             cursor_pos = 0;
             for (size_t i = 0; i < chat_input.length(); ++i) {
-                std::wstring substr = chat_input.substr(0, i + 1);
+                std::string substr = chat_input.substr(0, i + 1);
                 SIZE size;
-                GetTextExtentPoint32(m_hBufferDC, substr.c_str(), substr.length(), &size);
+                GetTextExtentPoint32A(m_hBufferDC, substr.c_str(), substr.length(), &size);
                 if (size.cx > click_x) {
                     cursor_pos = i;
                     break;
@@ -323,13 +328,7 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         if (x >= send_button_x && x < send_button_x + send_button_w &&
             y >= send_button_y && y < send_button_y + send_button_h) {
             if (!chat_input.empty()) {
-                std::string chat_str;
-                int len = WideCharToMultiByte(CP_UTF8, 0, chat_input.c_str(), -1, nullptr, 0, nullptr, nullptr);
-                if (len > 0) {
-                    chat_str.resize(len);
-                    WideCharToMultiByte(CP_UTF8, 0, chat_input.c_str(), -1, &chat_str[0], len, nullptr, nullptr);
-                    NonBlockingClient::get_inst().sendChatPacket(chat_str.c_str());
-                }
+                NonBlockingClient::get_inst().sendChatPacket(chat_input.c_str());
                 chat_input.clear();
                 cursor_pos = 0;
                 input_scroll_offset = 0;
@@ -364,15 +363,16 @@ void Play_Scene::Draw_chat()
 
     RECT input_rect = { chat_input_x, chat_input_y, chat_input_x + chat_input_w, chat_input_y + chat_input_h };
     SetTextColor(m_hBufferDC, RGB(255, 255, 255));
-    std::wstring visible_text = chat_input;
+    std::string visible_text = chat_input;
     int text_width;
     SIZE size;
-    GetTextExtentPoint32(m_hBufferDC, chat_input.c_str(), chat_input.length(), &size);
+    GetTextExtentPoint32A(m_hBufferDC, chat_input.c_str(), chat_input.length(), &size);
     text_width = size.cx;
+
     if (text_width > chat_input_w - 4) {
         if (cursor_pos < chat_input.length()) {
-            std::wstring to_cursor = chat_input.substr(0, cursor_pos + 1);
-            GetTextExtentPoint32(m_hBufferDC, to_cursor.c_str(), to_cursor.length(), &size);
+            std::string to_cursor = chat_input.substr(0, cursor_pos + 1);
+            GetTextExtentPoint32A(m_hBufferDC, to_cursor.c_str(), to_cursor.length(), &size);
             int cursor_x = size.cx;
             if (cursor_x - input_scroll_offset > chat_input_w - 4) {
                 input_scroll_offset = cursor_x - (chat_input_w - 4);
@@ -383,28 +383,29 @@ void Play_Scene::Draw_chat()
         }
         int start_char = 0;
         for (size_t i = 0; i < chat_input.length(); ++i) {
-            std::wstring substr = chat_input.substr(0, i + 1);
-            GetTextExtentPoint32(m_hBufferDC, substr.c_str(), substr.length(), &size);
+            std::string substr = chat_input.substr(0, i + 1);
+            GetTextExtentPoint32A(m_hBufferDC, substr.c_str(), substr.length(), &size);
             if (size.cx >= input_scroll_offset) {
                 start_char = i;
                 break;
             }
         }
         visible_text = chat_input.substr(start_char);
-        GetTextExtentPoint32(m_hBufferDC, visible_text.c_str(), visible_text.length(), &size);
+        GetTextExtentPoint32A(m_hBufferDC, visible_text.c_str(), visible_text.length(), &size);
         while (size.cx > chat_log_w - 4 && !visible_text.empty()) {
             visible_text = visible_text.substr(0, visible_text.length() - 1);
-            GetTextExtentPoint32(m_hBufferDC, visible_text.c_str(), visible_text.length(), &size);
+            GetTextExtentPoint32A(m_hBufferDC, visible_text.c_str(), visible_text.length(), &size);
         }
     }
     else {
         input_scroll_offset = 0;
     }
-    TextOut(m_hBufferDC, chat_input_x + 2, chat_input_y + 2, visible_text.c_str(), visible_text.length());
+
+    TextOutA(m_hBufferDC, chat_input_x + 2, chat_input_y + 2, visible_text.c_str(), visible_text.length());
 
     if (input_active) {
-        std::wstring to_cursor = chat_input.substr(0, cursor_pos + 1);
-        GetTextExtentPoint32(m_hBufferDC, to_cursor.c_str(), to_cursor.length(), &size);
+        std::string to_cursor = chat_input.substr(0, cursor_pos);
+        GetTextExtentPoint32A(m_hBufferDC, to_cursor.c_str(), to_cursor.length(), &size);
         int cursor_x = chat_input_x + 2 + size.cx - input_scroll_offset;
         if (cursor_x >= chat_input_x + 2 && cursor_x < chat_input_x + chat_input_w - 2) {
             MoveToEx(m_hBufferDC, cursor_x, chat_input_y + 2, nullptr);
@@ -416,8 +417,8 @@ void Play_Scene::Draw_chat()
     SetTextColor(m_hBufferDC, RGB(255, 255, 255));
     RECT button_rect = { send_button_x, send_button_y, send_button_x + send_button_w, send_button_y + send_button_h };
     FillRect(m_hBufferDC, &button_rect, chat_brush);
-    const wchar_t* send_text = L"▼";
-    TextOut(m_hBufferDC, send_button_x + 8, send_button_y + 4, send_text, wcslen(send_text));
+    const char* send_text = "▼";
+    TextOutA(m_hBufferDC, send_button_x + 8, send_button_y + 4, send_text, strlen(send_text));
 
     SelectObject(m_hBufferDC, old_font);
 }

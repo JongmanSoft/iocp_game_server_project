@@ -27,3 +27,4 @@
 #pragma comment(lib, "lua54.lib")
 using namespace std;
 
+bool hasSpecialChar(const std::string& str);

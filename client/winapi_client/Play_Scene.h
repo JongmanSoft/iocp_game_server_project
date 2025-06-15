@@ -32,7 +32,7 @@ private:
     const int line_height = 16; // Approximate height per line (font size 14 + spacing)
 
     // Chat input
-    std::wstring chat_input;
+    std::string chat_input;
     int cursor_pos = 0; // Cursor position in characters
     int input_scroll_offset = 0; // Horizontal scroll offset in pixels
     bool input_active = false; // Is the input area active?

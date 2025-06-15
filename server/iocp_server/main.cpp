@@ -186,6 +186,18 @@ void update_chat(int c_id, const char* mess) {
 	}
 }
 
+
+//
+bool User_InGame(std::string name) {
+	for (const auto& user : object) {
+		std::shared_ptr<OBJECT> u = user.second;
+		if (is_npc(u->_id))return false;
+		if (u->_name != name) continue;
+		if (u->_state == ST_INGAME) return true;
+	}
+	return false;
+}
+
 void process_packet(int c_id, char* packet) {
 	auto it = object.find(c_id);
 	if (it == object.end()) return;
@@ -193,10 +205,10 @@ void process_packet(int c_id, char* packet) {
 	switch (packet[1]) {
 	case C2S_P_LOGIN: {
 		cs_packet_login* p = reinterpret_cast<cs_packet_login*>(packet);
-		//동접수 10000아래인지 확인
+		if (hasSpecialChar(p->name)) { c->send_login_fail_packet(2); break; }
+		if (User_InGame(p->name)) { c->send_login_fail_packet(1); break; }
+		if (get_new_client_id() == -1) { c->send_login_fail_packet(3); break; }
 		//특수문자포함했는지확인
-		//이미 접속중인지 확인
-		//접속중이 아니라면,데이터베이스에 있는계정인지 확인
 		strcpy_s(c->_name, p->name);
 		DB_event dev = { DB_LOAD_INFO, c_id };
 		DBQ.push(dev);

@@ -256,6 +256,20 @@ void NonBlockingClient::handleReceivedPacket(const char* buffer, size_t size)
     case S2C_P_LOGIN_FAIL: {
         if (size < sizeof(sc_packet_login_fail)) return;
         const sc_packet_login_fail* packet = reinterpret_cast<const sc_packet_login_fail*>(buffer);
+        switch (packet->reason)
+        {
+        case 1:
+            MessageBox(m_framwork->m_hwnd,L"해당 아이디가 이미 접속중입니다!", L"로그인실패", MB_OK);
+            break;
+        case 2:
+            MessageBox(m_framwork->m_hwnd, L"부적절 아이디입니다!", L"로그인실패", MB_OK);
+            break;
+        case 3:
+            MessageBox(m_framwork->m_hwnd, L"게임의 동접수가 최대입니다!", L"로그인실패", MB_OK);
+            break;
+        default:
+            break;
+        }
         if (packetHandler_) {
             packetHandler_(buffer, size);
         }
