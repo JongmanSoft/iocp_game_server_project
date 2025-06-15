@@ -7,17 +7,18 @@ public:
 	HWND m_hwnd;
 	HBITMAP m_hBufferBitmap;
 	HDC m_hBufferDC;
+	HINSTANCE m_hinstance;
 	void* m_fw;
 public:
 
 
 	Scene() {};
-	Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC) {
+	Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC,HINSTANCE m_hinstance) {
 		m_hwnd = hwnd;
 		m_hBufferBitmap = hBufferBitmap;
 		m_hBufferDC = hBufferDC;
 	};
-	Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC, void* fw) {
+	Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC, HINSTANCE m_hinstance,void* fw) {
 		m_hwnd = hwnd;
 		m_hBufferBitmap = hBufferBitmap;
 		m_hBufferDC = hBufferDC;

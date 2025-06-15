@@ -22,8 +22,8 @@ public:
     // 패킷 전송 함수들
     void sendLoginPacket(const std::string& name);
     void sendMovePacket(char direction);
-    void sendAttackPacket();
-    void sendChatPacket(const std::string& message);
+    void sendAttackPacket(char direction);
+    void sendChatPacket(const char* message);
     void sendTeleportPacket();
     void sendStatePacket(int state, char dir);
 

@@ -5,7 +5,7 @@ void object::draw(HDC m_hBufferDC)
 	state_ptr->render(m_hBufferDC);
 	//이름출력
 
-	HFONT hFont = CreateFont(11, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+	HFONT hFont = CreateFont(12, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
 		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
 		DEFAULT_PITCH | FF_DONTCARE, L"둥근모꼴");
 	SelectObject(m_hBufferDC, hFont);
@@ -19,13 +19,14 @@ void object::draw(HDC m_hBufferDC)
 	TextOut(m_hBufferDC, (render_x * 32) -10, (render_y * 32) - 16, name_wstr.c_str(), name_wstr.length());
 
 	mess_ptr->render(m_hBufferDC);
+	DeleteObject(hFont);
 }
 
 void object::draw(HDC m_hBufferDC, int px, int py)
 {
 	state_ptr->render(m_hBufferDC,_x,_y,px,py);
 	//이름출력
-	HFONT hFont = CreateFont(11, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
+	HFONT hFont = CreateFont(12, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
 		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
 		DEFAULT_PITCH | FF_DONTCARE, L"둥근모꼴");
 	SelectObject(m_hBufferDC, hFont);
@@ -39,7 +40,7 @@ void object::draw(HDC m_hBufferDC, int px, int py)
 	TextOut(m_hBufferDC, (render_x * 32) -10, (render_y * 32) - 16, name_wstr.c_str(), name_wstr.length());
 
 	mess_ptr->render(m_hBufferDC, _x, _y, px, py);
-	
+	DeleteObject(hFont);
 }
 
 void object::update()

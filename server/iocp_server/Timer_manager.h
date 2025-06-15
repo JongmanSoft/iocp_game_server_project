@@ -1,19 +1,27 @@
 #pragma once
 #include "stdafx.h"
 
-enum EVENT_TYPE { EV_RANDOM_MOVE, EV_RUN_AWAY };
-
 struct TIMER_EVENT {
 	int obj_id;
-	chrono::system_clock::time_point wakeup_time;
-	EVENT_TYPE event_id;
+	int wake_time; //주기
+	void (*funtion)(const TIMER_EVENT&);
 	int target_id;
 	constexpr bool operator < (const TIMER_EVENT& L) const
 	{
-		return (wakeup_time > L.wakeup_time);
+		return (wake_time > L.wake_time);
 	}
 };
-
-extern concurrency::concurrent_priority_queue<TIMER_EVENT> timer_queue;
+extern concurrency::concurrent_vector <TIMER_EVENT> TIV;
+extern concurrency::concurrent_priority_queue<TIMER_EVENT> TIQ; //실행시간이 다된 이벤트만 들어감
 
 void Do_Timer();
+
+void EXEC_EVENT();
+
+void attack_update(TIMER_EVENT&);
+
+void random_move(TIMER_EVENT&);
+
+void follow_move(TIMER_EVENT&);
+
+void attack_player(TIMER_EVENT&);

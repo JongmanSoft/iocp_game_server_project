@@ -149,6 +149,43 @@ void update_animation(int c_id, int state, char dir) {
 	}
 }
 
+void update_chat(int c_id, const char* mess) {
+	auto it = object.find(c_id);
+	if (it == object.end()) return;
+	std::shared_ptr<USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
+	std::pair<int, int>index = get_sector_index(c->x, c->y);
+	std::pair<int, int> min_index = { max(0,index.first - 1), max(0,index.second - 1) };
+	std::pair<int, int> max_index = {
+		min(MAP_HEIGHT / SECTOR_SIZE - 1,index.first + 1),
+			min(MAP_WIDTH / SECTOR_SIZE - 1,index.second + 1) };
+
+	for (int row = min_index.first; row < max_index.first + 1; row++) {
+		for (int col = min_index.second; col < max_index.second + 1; col++) {
+			concurrency::concurrent_unordered_set<int> local_list;
+			{
+				std::lock_guard<std::mutex> ll(g_sector_mutexes[row][col]);
+				local_list = g_sectors[row][col];
+			}
+
+			for (const int& p_id : local_list) {
+				shared_ptr<OBJECT>p = object.at(p_id);
+				{
+					lock_guard<mutex> ll(p->_s_lock);
+					if (ST_INGAME != p->_state) continue;
+				}
+				if (p->_id == c_id) continue;
+				if (false == can_see(c_id, p->_id))
+					continue;
+				if (is_pc(p->_id)) {
+					shared_ptr <USER> PP = std::dynamic_pointer_cast<USER>(p);
+					PP->send_chat_packet(c_id,mess);
+				}
+
+			}
+		}
+	}
+}
+
 void process_packet(int c_id, char* packet) {
 	auto it = object.find(c_id);
 	if (it == object.end()) return;
@@ -163,6 +200,7 @@ void process_packet(int c_id, char* packet) {
 		strcpy_s(c->_name, p->name);
 		DB_event dev = { DB_LOAD_INFO, c_id };
 		DBQ.push(dev);
+		ZeroMemory(packet, sizeof(cs_packet_login));
 		break;
 	}
 	case C2S_P_MOVE: {
@@ -195,9 +233,19 @@ void process_packet(int c_id, char* packet) {
 	case C2S_P_STATE:{
 		cs_packet_state* p = reinterpret_cast<cs_packet_state*>(packet);
 		update_animation(c_id, p->state, p->direction);
+	
 		}
 		break;
+
+	case C2S_P_CHAT: {
+		cs_packet_chat* p = reinterpret_cast<cs_packet_chat*>(packet);
+		c->send_chat_packet(c_id, p->message);
+		update_chat(c_id,p->message);
 	}
+		break;
+	
+	}
+	
 }
 
 
@@ -338,3 +386,4 @@ int main() {
 
 	return 0;
 }
+

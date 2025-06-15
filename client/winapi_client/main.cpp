@@ -12,6 +12,7 @@ HBITMAP hBufferBitmap;
 HDC hBufferDC;
 bool isRunning = true;
 Framework* m_framework;
+HINSTANCE g_instane;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow) {
 
@@ -27,6 +28,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow
     wcex.style = CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc = WindowProc;
     wcex.hInstance = hInstance;
+    g_instane = hInstance;
     wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
     wcex.lpszClassName = L"JongmanRPG";
     if (!RegisterClassEx(&wcex)) return 1;
@@ -80,7 +82,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         hBufferBitmap = CreateCompatibleBitmap(hdc, rect.right, rect.bottom);
         SelectObject(hBufferDC, hBufferBitmap);
         ReleaseDC(hwnd, hdc);
-        m_framework = new Framework(hwnd, hBufferBitmap, hBufferDC);
+        m_framework = new Framework(hwnd, hBufferBitmap, hBufferDC, g_instane);
       
         if (!m_framework) {
             return -1;

@@ -3,7 +3,7 @@
 constexpr short GAME_PORT = 3000;
 
 constexpr short BUF_SIZE = 200;
-constexpr short MAX_CHAT_LENGTH = 255;
+constexpr short MAX_CHAT_LENGTH = 100;
 
 constexpr int  MAX_USER = 10000;
 constexpr int  NUM_MONSTER = 200000;
@@ -145,6 +145,7 @@ struct cs_packet_move {
 struct cs_packet_attack {
 	unsigned char  size;
 	char  type;
+	char  direction;
 };
 
 struct cs_packet_chat {

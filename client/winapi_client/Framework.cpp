@@ -4,12 +4,13 @@
 
 
 
-Framework::Framework(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC)
+Framework::Framework(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC,HINSTANCE hInstance)
 {
 	m_hwnd = hwnd;
 	m_hBufferBitmap = hBufferBitmap;
 	m_hBufferDC = hBufferDC;
-	m_scene = std::make_unique<Start_Scene>(m_hwnd, m_hBufferBitmap, m_hBufferDC, this);
+	m_hinstance = hInstance;
+	m_scene = std::make_unique<Start_Scene>(m_hwnd, m_hBufferBitmap, m_hBufferDC,hInstance, this);
 
 	NonBlockingClient::get_inst().frame_work_recv(this);
 }
@@ -38,12 +39,12 @@ void Framework::scene_change(int next_scene)
 	{
 	case START_SCENE:
 	{
-		m_scene = std::make_unique<Start_Scene>(m_hwnd, m_hBufferBitmap, m_hBufferDC,this);
+		m_scene = std::make_unique<Start_Scene>(m_hwnd, m_hBufferBitmap, m_hBufferDC,m_hinstance,this);
 	}
 	break;
 	case PLAY_SCENE:
 	{
-		m_scene = std::make_unique<Play_Scene>(m_hwnd, m_hBufferBitmap, m_hBufferDC,this);
+		m_scene = std::make_unique<Play_Scene>(m_hwnd, m_hBufferBitmap, m_hBufferDC, m_hinstance,this);
 	}
 	break;
 	default:
@@ -103,4 +104,18 @@ void Framework::state_packet_process(sc_packet_state p)
 	std::shared_ptr <object> obj = c->second.load();
 	int client_dir[4] = {1,0,2,3};
 	obj->change_state(p.state, client_dir[p.direction - 1]);
+}
+
+void Framework::chat_packet_process(sc_packet_chat p)
+{
+	Play_Scene* scene = static_cast<Play_Scene*>(m_scene.get());
+
+	if (player_login_info.id == p.id) {
+		scene->player->mess_ptr->mess_setting(p.message);
+		return;
+	}
+	auto c = scene->objects.find(p.id);
+	if (c == scene->objects.end()) return;
+	std::shared_ptr <object> obj = c->second.load();
+	obj->mess_ptr->mess_setting(p.message);
 }

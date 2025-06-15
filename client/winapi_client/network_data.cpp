@@ -89,23 +89,25 @@ void NonBlockingClient::sendMovePacket(char direction)
     sendQueue_.emplace(std::vector<char>(reinterpret_cast<char*>(&packet), reinterpret_cast<char*>(&packet) + packet.size));
 }
 
-void NonBlockingClient::sendAttackPacket()
+void NonBlockingClient::sendAttackPacket(char direction)
 {
     cs_packet_attack packet = {};
     packet.size = sizeof(cs_packet_attack);
     packet.type = C2S_P_ATTACK;
+    packet.direction = direction;
 
     std::lock_guard<std::mutex> lock(sendMutex_);
     sendQueue_.emplace(std::vector<char>(reinterpret_cast<char*>(&packet), reinterpret_cast<char*>(&packet) + packet.size));
 }
 
-void NonBlockingClient::sendChatPacket(const std::string& message)
+
+void NonBlockingClient::sendChatPacket(const char* message)
 {
     cs_packet_chat packet = {};
     packet.size = sizeof(cs_packet_chat);
     packet.type = C2S_P_CHAT;
-    strncpy_s(packet.message, message.c_str(), MAX_CHAT_LENGTH - 1);
-
+    for (int i = 0; i < MAX_CHAT_LENGTH; i++)packet.message[i] = '\0';
+    strcpy_s(packet.message, message);
     std::lock_guard<std::mutex> lock(sendMutex_);
     sendQueue_.emplace(std::vector<char>(reinterpret_cast<char*>(&packet), reinterpret_cast<char*>(&packet) + packet.size));
 }
@@ -227,7 +229,7 @@ void NonBlockingClient::handleReceivedPacket(const char* buffer, size_t size)
     case S2C_P_CHAT: {
         if (size < sizeof(sc_packet_chat)) return;
         const sc_packet_chat* packet = reinterpret_cast<const sc_packet_chat*>(buffer);
-        
+        m_framwork->chat_packet_process(*packet);
         if (packetHandler_) {
             packetHandler_(buffer, size);
         }

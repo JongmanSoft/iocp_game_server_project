@@ -30,7 +30,7 @@ public:
     bool accept_sucess = false;
 
 public:
-    Start_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC, void* fw);
+    Start_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC,HINSTANCE hinstance, void* fw);
     ~Start_Scene(); 
     void update() override;
     void network() override;

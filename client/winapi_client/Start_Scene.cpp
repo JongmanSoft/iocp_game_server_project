@@ -2,10 +2,11 @@
 #include "Start_Scene.h"
 #include "network_data.h"
 
-Start_Scene::Start_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC, void* fw) {
+Start_Scene::Start_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC,HINSTANCE hinstance, void* fw) {
     m_hwnd = hwnd;
     m_hBufferBitmap = hBufferBitmap;
     m_hBufferDC = hBufferDC;
+    m_hinstance = hinstance;
     m_fw = fw;
     title_img.Load(L"image/title.png");
     FMOD_RESULT result = FMOD::System_Create(&g_system);
