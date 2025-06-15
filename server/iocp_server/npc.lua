@@ -38,14 +38,38 @@ function set_init_npc_(o_type, zone, collision_array)
         local rx = math.random(10, 80)
         local ry = math.random(40, 90)
         x, y = find_free_position(collision_array, rx, ry)
-        x = x+((zone & 20) * 100)
-        y = y+ (math.floor(zone / 20) * 100)
+        x = x+(col * 100)
+        y = y+ (row * 100)
     elseif o_type == 3 then
         local rx = math.random(0, 90)
         local ry = math.random(0, 25)
         x, y = find_free_position(collision_array, rx, ry)
-        x = x+((zone & 20) * 100)
-        y = y+ (math.floor(zone / 20) * 100)
+        x = x+(col * 100)
+        y = y+ (row * 100)
     end
     return x, y
+end
+
+function event_hello(player)
+
+   my_x = api_get_x(myid);
+   my_y = api_get_y(myid);
+   player_x = api_get_x(player);
+   player_y = api_get_y(player);
+ 
+   if (player_x == my_x) then
+      if (player_y == my_y) then
+         local  random_message = math.random(0,3)
+         if random_message == 0 then
+        api_sendHello(myid, player, "뭐하는거지? 어서 인간들을 잡아라!");
+        elseif random_message == 1 then
+         api_sendHello(myid, player, "인간녀석들...그동안 우릴 무시했겠다!");
+        elseif random_message == 2 then
+         api_sendHello(myid, player, "인간들에게 본때를 보여주는거다!");
+        elseif random_message == 3 then
+        api_sendHello(myid, player, "너도 어느덧 늠름한 전사가 되었구나! 자! 가는거다!");
+        end
+          
+      end
+   end
 end

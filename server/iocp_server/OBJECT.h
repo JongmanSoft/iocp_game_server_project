@@ -160,5 +160,10 @@ public:
 
 		insert_sector(_id, x, y); 
 	
+		lua_register(L, "api_sendHello", api_send_hello);
+		lua_register(L, "api_get_x", api_get_x);
+		lua_register(L, "api_get_y", api_get_y);
 	}
+
+	
 };

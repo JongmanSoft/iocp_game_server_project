@@ -46,8 +46,9 @@ void load_view_list(int c_id) {
 					c->send_add_player_packet(p->_id);
 				}
 				else {
+
 					c->send_add_object_packet(p->_id);
-					//if (can_see(p->_id, c_id))WakeUpNPC(p->_id, c_id);
+					if (can_see(p->_id, c_id))WakeUp(p->_id, c_id);
 				}
 			}
 		}
@@ -86,7 +87,9 @@ void update_view_list(int c_id) {
 
 
 	for (auto& pl : near_list) {
-		shared_ptr<OBJECT>cpll = object.at(pl);
+		
+		auto it = object.find(pl); if (it == object.end()) break;
+		shared_ptr <OBJECT> cpll = it->second.load();
 		auto cpl = std::dynamic_pointer_cast<USER>(cpll);
 		if (cpl) { //
 
@@ -99,13 +102,14 @@ void update_view_list(int c_id) {
 			
 		
 		}
-		else { //npcÀÏ°æ¿ì?
-			//WakeUpNPC(cpl->_id, c_id);
+		else { 
+			auto npl = std::dynamic_pointer_cast<NPC>(cpll);
+			WakeUp(npl->_id, c_id);
 		}
 		if (old_vlist.count(pl) == 0) {
 			if (is_pc(pl))c->send_add_player_packet(pl);
 			else c->send_add_object_packet(pl);
-				//if (is_npc(cpl->_id)) WakeUpNPC(cpl->_id, c_id);
+			if (is_npc(cpll->_id)) WakeUp(cpll->_id, c_id);
 		}
 	}
 	for (auto& pl : old_vlist)
@@ -193,6 +197,7 @@ void update_chat(int c_id, const char* mess) {
 		}
 	}
 }
+
 
 void init_npc() {
 	for (int i = 0; i < 400; i++) {
@@ -383,6 +388,21 @@ void worker_thread(HANDLE h_iocp)
 
 		}
 			
+			break;
+
+		case OP_AI_HELLO:
+			{
+			auto it = object.find(key);
+			if (it == object.end()) break;
+			shared_ptr <NPC> c = std::dynamic_pointer_cast<NPC>(it->second.load());
+			c->_ll.lock();
+			auto L = c->_L;
+			lua_getglobal(L, "event_hello");
+			lua_pushnumber(L, ex_over->_ai_target_obj);
+			lua_pcall(L, 1, 0, 0);
+			c->_ll.unlock();
+			delete ex_over;
+			}
 			break;
 		}
 	}
