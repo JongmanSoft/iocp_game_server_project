@@ -19,6 +19,8 @@ public:
 	S_STATE _state;
 	short	x, y;
 	int _hp = 100;
+	int _level = 1;
+	int _exp = 0;
 	char	_name[MAX_ID_LENGTH];
 	int _o_type;
 
@@ -37,11 +39,11 @@ public:
 	int		last_move_time;
 
 public:
-	int _level =1;
 	
-	int _exp = 0;
 
 	std::atomic_bool _able_attack = true; //공격가능
+	std::atomic_bool _able_attack_skill = true; //공격스킬가능
+	std::atomic_bool _able_heal_skill = true; //회복스킬가능
 public:
 	USER(int new_id, SOCKET new_s, S_STATE new_st) :OBJECT(new_id,new_st), _socket{ new_s }
 	{
@@ -55,7 +57,7 @@ public:
 	void do_send(void* packet);
 	void send_move_packet(int c_id);
 	void send_remove_object_packet(int c_id);
-
+	void send_stat_packet(int c_id);
 	void send_state_packet(int c_id,int state,char dir);
 
 	void send_login_fail_packet(int reason);

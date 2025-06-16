@@ -375,6 +375,10 @@ void worker_thread(HANDLE h_iocp)
 			}
 			c->send_login_info_packet();
 			load_view_list(c->_id);
+			if (c->_hp < MaxHP(c->_level)) {
+				TIMER_EVENT ev(key, 5, heal_update, 0);
+				TIQ.push(ev);
+			}
 		}
 			break;
 		case OP_DB_NEW_USER: {
@@ -420,6 +424,35 @@ void worker_thread(HANDLE h_iocp)
 			bool old_state = false;
 			if (!atomic_compare_exchange_strong(&c->_able_attack, &old_state, true)) break;
 			//다시 공격할 수 있음!
+			break;
+		}
+		case OP_PLAYER_SKILL: {
+			auto it = object.find(key);
+			if (it == object.end()) break;
+			shared_ptr <USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
+			bool old_state = false;
+			if (!atomic_compare_exchange_strong(&c->_able_attack_skill, &old_state, true)) break;
+			break;
+		}
+		case OP_PLAYER_HEAL_SKILL: {
+			auto it = object.find(key);
+			if (it == object.end()) break;
+			shared_ptr <USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
+			bool old_state = false;
+			if (!atomic_compare_exchange_strong(&c->_able_heal_skill, &old_state, true)) break;
+			break;
+		}
+		case OP_PLAYER_HEAL: {
+			auto it = object.find(key);
+			if (it == object.end()) break;
+			shared_ptr <USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
+			c->_hp += (MaxHP(c->_level) * 0.1);
+			c->_hp = min(c->_hp, MaxHP(c->_level));
+			c->send_stat_packet(key);
+			if (c->_hp < MaxHP(c->_level)) {
+				TIMER_EVENT ev(key, 5, heal_update, 0);
+				TIQ.push(ev);
+			}
 			break;
 		}
 		}

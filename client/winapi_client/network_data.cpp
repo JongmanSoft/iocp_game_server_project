@@ -287,6 +287,7 @@ void NonBlockingClient::handleReceivedPacket(const char* buffer, size_t size)
     case S2C_P_STAT_CHANGE: {
         if (size < sizeof(sc_packet_stat_change)) return;
         const sc_packet_stat_change* packet = reinterpret_cast<const sc_packet_stat_change*>(buffer);
+        m_framwork->stat_change_packet_process(*packet);
         if (packetHandler_) {
             packetHandler_(buffer, size);
         }

@@ -10,6 +10,7 @@ public:
 	char _name[MAX_ID_LENGTH] = "jongman";
 	int _hp = 100;
 	int _level = 1;
+	int _exp = 0;
 
 public:
 	//state°ü¸®

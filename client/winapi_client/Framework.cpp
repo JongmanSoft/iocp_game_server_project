@@ -91,9 +91,21 @@ void Framework::leave_packet_process(sc_packet_leave p )
 	scene->objects.erase(p.id);
 }
 
-void Framework::stat_change_packet_process(sc_packet_stat_change)
+void Framework::stat_change_packet_process(sc_packet_stat_change p)
 {
-
+	Play_Scene* scene = static_cast<Play_Scene*>(m_scene.get());
+	if (p.id == player_login_info.id) {
+		scene->player->_hp = p.hp;
+		scene->player->_level = p.level;
+		scene->player->_exp = p.exp;
+		return;
+	}
+	auto c = scene->objects.find(p.id);
+	if (c == scene->objects.end()) return;
+	std::shared_ptr <object> obj = c->second.load();
+	obj->_hp = p.hp;
+	obj->_level = p.level;
+	obj->_exp = p.exp;
 }
 
 void Framework::state_packet_process(sc_packet_state p)

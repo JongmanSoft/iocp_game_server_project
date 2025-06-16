@@ -38,26 +38,27 @@ void attack_update(const TIMER_EVENT& ev)
 void attack_skill_update(const TIMER_EVENT& ev)
 {
     OVER_EXP* ov = new OVER_EXP;
-    ov->_comp_type = OP_PLAYER_ATTACK;
+    ov->_comp_type = OP_PLAYER_SKILL;
     PostQueuedCompletionStatus(h_iocp, 1, ev.obj_id, &ov->_over);
 }
 
 void heal_skiil_update(const TIMER_EVENT& ev)
 {
     OVER_EXP* ov = new OVER_EXP;
-    ov->_comp_type = OP_PLAYER_ATTACK;
+    ov->_comp_type = OP_PLAYER_HEAL_SKILL;
     PostQueuedCompletionStatus(h_iocp, 1, ev.obj_id, &ov->_over);
 }
 
 void heal_update(const TIMER_EVENT& ev)
 {
     OVER_EXP* ov = new OVER_EXP;
-    ov->_comp_type = OP_PLAYER_ATTACK;
+    ov->_comp_type = OP_PLAYER_HEAL;
     PostQueuedCompletionStatus(h_iocp, 1, ev.obj_id, &ov->_over);
 }
 
 void random_move(const TIMER_EVENT&)
 {
+
 }
 
 void follow_move(const TIMER_EVENT&)

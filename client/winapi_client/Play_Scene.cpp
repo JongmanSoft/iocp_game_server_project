@@ -156,13 +156,13 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         {
             profile_img.AlphaBlend(m_hBufferDC, 0, 0, window_size, window_size,
                 0, 0, profile_img.GetWidth(), profile_img.GetHeight(), 255, AC_SRC_OVER);
-
-            float hp_percent = ((float)player->_hp / (float)(80 + (player->_level * 20))) * 72;
+            int max_hp = MaxHP(player->_level);
+            float hp_percent = ((float)player->_hp / (float)(max_hp)) * 72;
             hp_img.AlphaBlend(m_hBufferDC, 165, 86, hp_percent - 1, 9,
                 0, 0, hp_img.GetWidth(), hp_img.GetHeight(), 255, AC_SRC_OVER);
             SetTextColor(m_hBufferDC, RGB(255, 255, 255));
             TCHAR hp_text[20];
-            wsprintf(hp_text, L"%d / %d", player->_hp, 80 + (player->_level * 20));
+            wsprintf(hp_text, L"%d / %d", player->_hp, max_hp);
             TextOut(m_hBufferDC, 170, 83, hp_text, lstrlen(hp_text));
 
             SetTextColor(m_hBufferDC, RGB(90, 37, 23));

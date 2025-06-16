@@ -1,5 +1,11 @@
 #pragma once
-#define MAX_HP(level) 80+(level*20)
+inline int MaxHP(int level) {
+	if (level < 1) return 80; // 추가 로직
+	return 80 + (level * 20);
+}
+inline int Dammage(int level) {
+	return 7 + (level * 3);
+}
 constexpr short GAME_PORT = 3000;
 
 constexpr short BUF_SIZE = 200;
