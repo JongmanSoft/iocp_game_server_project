@@ -28,6 +28,8 @@ public:
 public:
     HWND hEdit;
 
+public:
+    bool player_live = true;
 private:
     // Chat log
     std::vector<std::wstring> chat_log;

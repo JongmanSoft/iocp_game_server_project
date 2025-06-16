@@ -62,6 +62,7 @@ void Framework::move_packet_process(sc_packet_move p)
 {
 	Play_Scene* scene = static_cast<Play_Scene*>(m_scene.get());
 	if (p.id == player_login_info.id) {
+		scene->player_live = true;
 		player_login_info.x = p.x;
 		player_login_info.y = p.y;
 		scene->player->_x = p.x;
@@ -112,6 +113,7 @@ void Framework::state_packet_process(sc_packet_state p)
 {
 	Play_Scene* scene = static_cast<Play_Scene*>(m_scene.get());
 	if (p.id == player_login_info.id) {
+		if (p.state == DEATH) scene->player_live = false;
 		scene->change_state(p.state);
 		return;
 	}

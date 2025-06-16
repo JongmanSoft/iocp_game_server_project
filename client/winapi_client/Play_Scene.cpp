@@ -250,33 +250,37 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         return 0;
     }
     case WM_KEYUP: {
-        switch (wParam) {
-        case 65: // A
-            NonBlockingClient::get_inst().sendAttackPacket(player->state_ptr->dir);
-            break;
-        case 67: // C
-            change_state(HURT);
-            break;
-        case 68: // D
-            change_state(DEATH);
-            break;
-        case VK_LEFT:
-            NonBlockingClient::get_inst().sendStatePacket(IDLE, MOVE_LEFT);
-            player->change_state(IDLE, 2);
-            break;
-        case VK_RIGHT:
-            NonBlockingClient::get_inst().sendStatePacket(IDLE, MOVE_RIGHT);
-            player->change_state(IDLE, 3);
-            break;
-        case VK_UP:
-            NonBlockingClient::get_inst().sendStatePacket(IDLE, MOVE_UP);
-            player->change_state(IDLE, 1);
-            break;
-        case VK_DOWN:
-            NonBlockingClient::get_inst().sendStatePacket(IDLE, MOVE_DOWN);
-            player->change_state(IDLE, 0);
-            break;
+        if (player_live) {
+            switch (wParam) {
+            case 65: // A
+                NonBlockingClient::get_inst().sendAttackPacket(player->state_ptr->dir);
+                break;
+            case 67: // C
+                change_state(HURT);
+                break;
+            case 68: // D
+                change_state(DEATH);
+                break;
+            case VK_LEFT:
+                NonBlockingClient::get_inst().sendStatePacket(IDLE, MOVE_LEFT);
+                player->change_state(IDLE, 2);
+                break;
+            case VK_RIGHT:
+                NonBlockingClient::get_inst().sendStatePacket(IDLE, MOVE_RIGHT);
+                player->change_state(IDLE, 3);
+                break;
+            case VK_UP:
+                NonBlockingClient::get_inst().sendStatePacket(IDLE, MOVE_UP);
+                player->change_state(IDLE, 1);
+                break;
+            case VK_DOWN:
+                NonBlockingClient::get_inst().sendStatePacket(IDLE, MOVE_DOWN);
+                player->change_state(IDLE, 0);
+                break;
+            }
+
         }
+     
         InvalidateRect(hwnd, NULL, FALSE);
         return 0;
     }
@@ -317,36 +321,39 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
             }
         }
         else {
-            switch (wParam) {
-            case VK_LEFT:
-                player->change_state(WALK, 2);
-                NonBlockingClient::get_inst().sendStatePacket(WALK, MOVE_LEFT);
-                if (player->_x > 0 && Map_data::get_inst()._maps[player->_x - 1][player->_y]._collision != 1) {
-                    NonBlockingClient::get_inst().sendMovePacket(MOVE_LEFT);
+            if (player_live) {
+                switch (wParam) {
+                case VK_LEFT:
+                    player->change_state(WALK, 2);
+                    NonBlockingClient::get_inst().sendStatePacket(WALK, MOVE_LEFT);
+                    if (player->_x > 0 && Map_data::get_inst()._maps[player->_x - 1][player->_y]._collision != 1) {
+                        NonBlockingClient::get_inst().sendMovePacket(MOVE_LEFT);
+                    }
+                    break;
+                case VK_RIGHT:
+                    player->change_state(WALK, 3);
+                    NonBlockingClient::get_inst().sendStatePacket(WALK, MOVE_RIGHT);
+                    if (player->_x < MAP_SIZE - 1 && Map_data::get_inst()._maps[player->_x + 1][player->_y]._collision != 1) {
+                        NonBlockingClient::get_inst().sendMovePacket(MOVE_RIGHT);
+                    }
+                    break;
+                case VK_UP:
+                    player->change_state(WALK, 1);
+                    NonBlockingClient::get_inst().sendStatePacket(WALK, MOVE_UP);
+                    if (player->_y > 0 && Map_data::get_inst()._maps[player->_x][player->_y - 1]._collision != 1) {
+                        NonBlockingClient::get_inst().sendMovePacket(MOVE_UP);
+                    }
+                    break;
+                case VK_DOWN:
+                    player->change_state(WALK, 0);
+                    NonBlockingClient::get_inst().sendStatePacket(WALK, MOVE_DOWN);
+                    if (player->_y < MAP_SIZE - 1 && Map_data::get_inst()._maps[player->_x][player->_y + 1]._collision != 1) {
+                        NonBlockingClient::get_inst().sendMovePacket(MOVE_DOWN);
+                    }
+                    break;
                 }
-                break;
-            case VK_RIGHT:
-                player->change_state(WALK, 3);
-                NonBlockingClient::get_inst().sendStatePacket(WALK, MOVE_RIGHT);
-                if (player->_x < MAP_SIZE - 1 && Map_data::get_inst()._maps[player->_x + 1][player->_y]._collision != 1) {
-                    NonBlockingClient::get_inst().sendMovePacket(MOVE_RIGHT);
-                }
-                break;
-            case VK_UP:
-                player->change_state(WALK, 1);
-                NonBlockingClient::get_inst().sendStatePacket(WALK, MOVE_UP);
-                if (player->_y > 0 && Map_data::get_inst()._maps[player->_x][player->_y - 1]._collision != 1) {
-                    NonBlockingClient::get_inst().sendMovePacket(MOVE_UP);
-                }
-                break;
-            case VK_DOWN:
-                player->change_state(WALK, 0);
-                NonBlockingClient::get_inst().sendStatePacket(WALK, MOVE_DOWN);
-                if (player->_y < MAP_SIZE - 1 && Map_data::get_inst()._maps[player->_x][player->_y + 1]._collision != 1) {
-                    NonBlockingClient::get_inst().sendMovePacket(MOVE_DOWN);
-                }
-                break;
             }
+           
         }
         InvalidateRect(hwnd, NULL, FALSE);
         return 0;

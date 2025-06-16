@@ -693,6 +693,7 @@ void worker_thread(HANDLE h_iocp)
 			me->y = init_y;
 			me->_hp = MaxHP(me->_level);
 			me->send_move_packet(me->_id);
+			me->send_stat_packet(me->_id);
 			insert_sector(me->_id, me->x, me->y);
 			load_view_list(me->_id);
 			
