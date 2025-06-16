@@ -77,9 +77,96 @@ void WakeUp(int npc_id, int waker)
    
 }
 
-void attack_up(int npc_id, int waker)
+char ai_random_move(int npc_id)
 {
+    //방향을 리턴
+    auto it = object.find(npc_id);
+    if (it == object.end())return MOVE_DOWN;
+    shared_ptr<NPC>npc = std::dynamic_pointer_cast<NPC>(it->second.load());
+    char random_move_dir = rand() % 4 + 1;
+    switch (random_move_dir)
+    {
+    case MOVE_UP: //LEFT
+        if (npc->x > 0 && npc->x - 1 > npc->sx - 10) {
+            short find_index_x = npc->x % 100;
+            if (find_index_x == 0) find_index_x = 100;
+            if (!collision_data[find_index_x - 1][npc->y%100])npc->x--;
+        }
+        break;
+    case MOVE_DOWN: //DOWN
+        if (npc->y < MAP_HEIGHT && npc->y + 1 < npc->sy + 10) {
+            short find_index_y = npc->y % 100;
+            if (find_index_y == 99) find_index_y = 0;
+            if (!collision_data[npc->x % 100][find_index_y + 1])npc->y++;
+        }
+        break;
+    case MOVE_LEFT: //RIGHT
+        if (npc->x < MAP_WIDTH && npc->x + 1 < npc->sx + 10) {
+            short find_index_x = npc->x % 100;
+            if (find_index_x == 99) find_index_x = 0;
+            if (!collision_data[find_index_x + 1][npc->y % 100])npc->x++;
+        }
+        break;
+    case MOVE_RIGHT: //UP
+        if (npc->y > 0 && npc->y - 1 > npc->sy - 10) {
+            short find_index_y = npc->y % 100;
+            if (find_index_y == 0) find_index_y = 100;
+            if (!collision_data[npc->x%100][find_index_y - 1])npc->y--;
+        }
+        break;
+    default:
+        break;
+    }
+    return random_move_dir;
 }
+
+char ai_follow_move(int npc_id, int target_id)
+{
+    //방향을 리턴
+}
+
+bool keep_alive(int npc_id)
+{
+    auto it = object.find(npc_id);
+    if (it == object.end()) return false;
+    std::shared_ptr<OBJECT> c = it->second.load();
+    std::pair<int, int>index = get_sector_index(c->x, c->y);
+    std::pair<int, int> min_index = { max(0,index.first - 1), max(0,index.second - 1) };
+    std::pair<int, int> max_index = {
+        min(MAP_HEIGHT / SECTOR_SIZE - 1,index.first + 1),
+            min(MAP_WIDTH / SECTOR_SIZE - 1,index.second + 1) };
+
+    for (int row = min_index.first; row < max_index.first + 1; row++) {
+        for (int col = min_index.second; col < max_index.second + 1; col++) {
+            concurrency::concurrent_unordered_set<int> local_list;
+            {
+                std::lock_guard<std::mutex> ll(g_sector_mutexes[row][col]);
+                local_list = g_sectors[row][col];
+            }
+
+            for (const int& p_id : local_list) {
+                shared_ptr<OBJECT>p = object.at(p_id);
+                {
+                    lock_guard<mutex> ll(p->_s_lock);
+                    if (ST_INGAME != p->_state) continue;
+                }
+                if (p->_id == npc_id) continue;
+                if (false == can_see(npc_id, p->_id))
+                    continue;
+                if (is_pc(p->_id)) {
+                    shared_ptr <USER> PP = std::dynamic_pointer_cast<USER>(p);
+                    return true;
+                }
+
+            }
+        }
+    }
+
+    return false;
+}
+
+
+
 
 int api_send_hello(lua_State* L)
 {

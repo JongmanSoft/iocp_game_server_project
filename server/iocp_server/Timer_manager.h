@@ -4,7 +4,7 @@
 class TIMER_EVENT {
 public:
 	int obj_id;
-	int wake_time; //주기,초 단위
+	float wake_time; //주기,초 단위
 	void (*funtion)(const TIMER_EVENT&);
 	int target_id;
 	constexpr bool operator < (const TIMER_EVENT& L) const
@@ -13,7 +13,7 @@ public:
 	}
 public:
 	TIMER_EVENT() {};
-	TIMER_EVENT(int objID, int wakeTime, void(*func)(const TIMER_EVENT&), int target) : obj_id{ objID },
+	TIMER_EVENT(int objID, float wakeTime, void(*func)(const TIMER_EVENT&), int target) : obj_id{ objID },
 		wake_time{ wakeTime }, funtion{ func }, target_id{ target } {
 	};
 };
@@ -28,9 +28,6 @@ void attack_skill_update(const TIMER_EVENT&);
 void heal_skiil_update(const TIMER_EVENT&);
 void heal_update(const TIMER_EVENT&);
 void relive_update(const TIMER_EVENT&);
-
 void random_move(const TIMER_EVENT&);
-
 void follow_move(const TIMER_EVENT&);
 
-void attack_player(const TIMER_EVENT&);

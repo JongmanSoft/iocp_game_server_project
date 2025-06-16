@@ -77,6 +77,8 @@ public:
 	lua_State* _L;
 	std::mutex	_ll;
 	std::atomic_bool	_is_active;
+	int targer_id = -1;
+	int sx, sy;
 
 public:
 	NPC(int id) {
@@ -105,8 +107,11 @@ public:
 		if (o_type == ORC_NPC)sprintf_s(_name, "%d번 오크", id);
 		if (o_type == HUMAN)sprintf_s(_name, "%d번 마을사람", id),_hp = NPC_MAX_HP[0];
 		if (o_type == S_HUMAN)sprintf_s(_name, "%d번 전사", id), _hp = NPC_MAX_HP[1];
+
 		_state = ST_INGAME;
 		_is_active = false;
+		
+
 		// Lua 상태 초기화
 		auto L = _L = luaL_newstate();
 		luaL_openlibs(L);
@@ -167,7 +172,8 @@ public:
 			lua_pop(L, 1); // collision_array 테이블 제거
 
 		} while (collision_data[x%100][y%100]);
-	
+		sx = x;
+		sy = y;
 		insert_sector(_id, x, y); 
 	
 		lua_register(L, "api_sendHello", api_send_hello);

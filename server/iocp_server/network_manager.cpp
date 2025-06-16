@@ -79,7 +79,7 @@ void USER::send_move_packet(int c_id)
 {
 	auto it = object.find(c_id);
 	if (it == object.end()) return;
-	std::shared_ptr<USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
+	std::shared_ptr<OBJECT> c = it->second.load();
 	sc_packet_move p;
 	p.id = c_id;
 	p.size = sizeof(sc_packet_move);
@@ -88,6 +88,8 @@ void USER::send_move_packet(int c_id)
 	p.y = c->y;
 	do_send(&p);
 }
+
+
 
 void USER::send_remove_object_packet(int c_id)
 {

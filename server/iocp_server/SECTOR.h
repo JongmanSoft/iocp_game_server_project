@@ -17,6 +17,8 @@ std::pair<int, int> delete_sector(const int& c_id, const int& _x, const int& _y)
 
 bool can_see(int from, int to);
 
+bool can_agro(int from, int to);
+
 bool can_attack(int from, int to, char dir);
 
 bool can_skill(int from, int to);

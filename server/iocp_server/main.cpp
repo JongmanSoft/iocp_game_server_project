@@ -232,6 +232,17 @@ void update_attack(int c_id, char action, char dir) {
 					//때리는데 성공함!
 					shared_ptr <NPC> PP = std::dynamic_pointer_cast<NPC>(p);
 					if (PP->_o_type != ORC_NPC) {
+
+						if (PP->_o_type == HUMAN) {
+							if (!PP->_is_active) {
+								c->send_chat_packet(p_id, "사..살려주세요!");
+								TIMER_EVENT te(PP->_id, 0.5, random_move, 0);
+								TIQ.push(te);
+								bool old_state = false;
+								if (!atomic_compare_exchange_strong(&PP->_is_active, &old_state, true))break;
+							}
+						}
+
 						std::string str_result = std::string(c->_name) + "가 " + std::string(PP->_name) + "에게 " + std::to_string(Dammage(c->_level)) + "데미지 공격!";
 						std::cout << str_result << std::endl;
 						c->send_chat_packet(-1, str_result.c_str());
@@ -248,7 +259,7 @@ void update_attack(int c_id, char action, char dir) {
 							delete_sector(p_id, PP->x, PP->y);
 							update_animation(p_id, DEATH, npc_state_dir[dir-1]);
 
-							TIMER_EVENT tev(PP->_id, 30, relive_update, 0);
+							TIMER_EVENT tev(PP->_id, 30.0, relive_update, 0);
 							TIQ.push(tev);
 
 							c->_exp += NPC_EXP[c->_o_type - 2];
@@ -275,6 +286,17 @@ void update_attack(int c_id, char action, char dir) {
 					//때리는데 성공함!
 					shared_ptr <NPC> PP = std::dynamic_pointer_cast<NPC>(p);
 					if (PP->_o_type != ORC_NPC) {
+
+						if (PP->_o_type == HUMAN) {
+							if (!PP->_is_active) {
+								c->send_chat_packet(p_id, "사..살려주세요!");
+								TIMER_EVENT te(PP->_id, 0.5, random_move, 0);
+								TIQ.push(te);
+								bool old_state = false;
+								if (!atomic_compare_exchange_strong(&PP->_is_active, &old_state, true))break;
+							}
+						}
+
 						std::string str_result = std::string(c->_name) + "가 " + std::string(PP->_name) + "에게 " + std::to_string(Dammage(c->_level)) + "데미지 공격!";
 						std::cout << str_result << std::endl;
 						c->send_chat_packet(-1, str_result.c_str());
@@ -291,7 +313,7 @@ void update_attack(int c_id, char action, char dir) {
 							delete_sector(p_id, PP->x, PP->y);
 							update_animation(p_id, DEATH, npc_state_dir[dir-1]);
 
-							TIMER_EVENT tev(PP->_id, 30, relive_update, 0);
+							TIMER_EVENT tev(PP->_id, 30.0, relive_update, 0);
 							TIQ.push(tev);
 
 							c->_exp += NPC_EXP[c->_o_type - 2];
@@ -409,6 +431,42 @@ void update_add(int c_id) {
 	}
 }
 
+void update_move(int c_id) {
+	auto it = object.find(c_id);
+	if (it == object.end()) return;
+	std::shared_ptr<OBJECT> c = it->second.load();
+	std::pair<int, int>index = get_sector_index(c->x, c->y);
+	std::pair<int, int> min_index = { max(0,index.first - 1), max(0,index.second - 1) };
+	std::pair<int, int> max_index = {
+		min(MAP_HEIGHT / SECTOR_SIZE - 1,index.first + 1),
+			min(MAP_WIDTH / SECTOR_SIZE - 1,index.second + 1) };
+
+	for (int row = min_index.first; row < max_index.first + 1; row++) {
+		for (int col = min_index.second; col < max_index.second + 1; col++) {
+			concurrency::concurrent_unordered_set<int> local_list;
+			{
+				std::lock_guard<std::mutex> ll(g_sector_mutexes[row][col]);
+				local_list = g_sectors[row][col];
+			}
+
+			for (const int& p_id : local_list) {
+				shared_ptr<OBJECT>p = object.at(p_id);
+				{
+					lock_guard<mutex> ll(p->_s_lock);
+					if (ST_INGAME != p->_state) continue;
+				}
+				if (p->_id == c_id) continue;
+				if (false == can_see(c_id, p->_id))
+					continue;
+				if (is_pc(p->_id)) {
+					shared_ptr <USER> PP = std::dynamic_pointer_cast<USER>(p);
+					PP->send_move_packet(c_id);
+				}
+
+			}
+		}
+	}
+}
 
 void init_npc() {
 	int npc_id = 0;
@@ -529,7 +587,7 @@ void process_packet(int c_id, char* packet) {
 				update_attack(c_id, ACTION_ATTACK, c->_dir);
 				bool old_state = true;
 				if (!atomic_compare_exchange_strong(&c->_able_attack, &old_state, false))break;
-				TIMER_EVENT ev(c_id, 1, attack_update, 0);
+				TIMER_EVENT ev(c_id, 1.0, attack_update, 0);
 				TIQ.push(ev);
 			}
 		}
@@ -544,7 +602,7 @@ void process_packet(int c_id, char* packet) {
 					update_attack(c_id, p->action, c->_dir);
 					bool old_state = true;
 					if (!atomic_compare_exchange_strong(&c->_able_attack_skill, &old_state, false))break;
-					TIMER_EVENT ev(c_id, 3, attack_skill_update, 0);
+					TIMER_EVENT ev(c_id, 3.0, attack_skill_update, 0);
 					TIQ.push(ev);
 					break;
 				}
@@ -554,7 +612,7 @@ void process_packet(int c_id, char* packet) {
 					update_attack(c_id, p->action, c->_dir);
 					bool old_state = true;
 					if (!atomic_compare_exchange_strong(&c->_able_heal_skill, &old_state, false))break;
-					TIMER_EVENT ev(c_id, 3, heal_skiil_update, 0);
+					TIMER_EVENT ev(c_id, 3.0, heal_skiil_update, 0);
 					TIQ.push(ev);
 					break;
 				}
@@ -656,7 +714,7 @@ void worker_thread(HANDLE h_iocp)
 			c->send_login_info_packet();
 			load_view_list(c->_id);
 			if (c->_hp < MaxHP(c->_level)) {
-				TIMER_EVENT ev(key, 5, heal_update, 0);
+				TIMER_EVENT ev(key, 5.0, heal_update, 0);
 				TIQ.push(ev);
 			}
 		}
@@ -733,7 +791,7 @@ void worker_thread(HANDLE h_iocp)
 				DB_event dev = { DB_SAVE_HP, key };
 				DBQ.push(dev);
 				if (c->_hp < MaxHP(c->_level)) {
-					TIMER_EVENT ev(key, 5, heal_update, 0);
+					TIMER_EVENT ev(key, 5.0, heal_update, 0);
 					TIQ.push(ev);
 				}
 			}
@@ -774,7 +832,7 @@ void worker_thread(HANDLE h_iocp)
 					me->_hp = 0;
 					me->_exp = me->_exp / 2;
 					me->send_state_packet(key, DEATH, me->_dir);
-					TIMER_EVENT tev(key, 5, relive_update, 0);
+					TIMER_EVENT tev(key, 5.0, relive_update, 0);
 					TIQ.push(tev);
 					delete_sector(key, me->x, me->y);
 					//todo leave전달
@@ -783,7 +841,7 @@ void worker_thread(HANDLE h_iocp)
 					DBQ.push(dbe);
 				}
 				else if (me->_hp + NPC_DAMMAGE[npc->_o_type - 2] >= MaxHP(me->_level)) {
-					TIMER_EVENT ev(key, 5, heal_update, 0);
+					TIMER_EVENT ev(key, 5.0, heal_update, 0);
 					TIQ.push(ev);
 				}
 				me->send_stat_packet(me->_id);
@@ -791,9 +849,6 @@ void worker_thread(HANDLE h_iocp)
 				DBQ.push(dbe);
 				
 			}
-			
-
-
 			break;
 		}
 		case OP_OBJECT_RELIVE: {
@@ -829,6 +884,24 @@ void worker_thread(HANDLE h_iocp)
 			}
 			break;
 		}
+		case OP_NPC_RANDOM_MOVE: {
+			char dir = ai_random_move(key);
+			update_animation(key, WALK, dir);
+			update_move(key);
+			auto it = object.find(key);
+			if (it == object.end()) return;
+			std::shared_ptr<NPC> npc = std::dynamic_pointer_cast<NPC>(it->second.load());
+			if (keep_alive(key)) {
+				TIMER_EVENT te(key, 0.5, random_move, 0);
+				TIQ.push(te);
+			}
+			else {
+				bool old_state = true;
+				if (!atomic_compare_exchange_strong(&npc->_is_active, &old_state, true))break;
+			}
+			break;
+		}
+		
 		}
 		
 	}

@@ -7,7 +7,11 @@ void ai_init();
 
 void WakeUp(int npc_id, int waker);
 
-void attack_up(int npc_id, int waker);
+char ai_random_move(int npc_id);
+
+char ai_follow_move(int npc_id, int target_id);
+
+bool keep_alive(int npc_id);
 
 int api_send_hello(lua_State* L);
 

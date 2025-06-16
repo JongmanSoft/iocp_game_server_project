@@ -5,8 +5,8 @@ concurrency::concurrent_priority_queue<TIMER_EVENT> TIQ;
 void Do_Timer()
 {
     while (true) {
-        // 1초 대기
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        // 0.5초 대기
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         if (TIQ.empty()) {
             continue;
         }
@@ -20,7 +20,7 @@ void Do_Timer()
                 event.funtion(event);
             }
             else {
-                event.wake_time -= 1;
+                event.wake_time -= 0.5;
                 TIQ.push(event);
             }
         }
@@ -63,17 +63,21 @@ void relive_update(const TIMER_EVENT& ev)
     PostQueuedCompletionStatus(h_iocp, 1, ev.obj_id, &ov->_over);
 }
 
-void random_move(const TIMER_EVENT&)
+void random_move(const TIMER_EVENT& ev)
 {
-
+    OVER_EXP* ov = new OVER_EXP;
+    ov->_comp_type = OP_NPC_RANDOM_MOVE;
+    PostQueuedCompletionStatus(h_iocp, 1, ev.obj_id, &ov->_over);
 }
 
-void follow_move(const TIMER_EVENT&)
+void follow_move(const TIMER_EVENT& ev)
 {
+    OVER_EXP* ov = new OVER_EXP;
+    ov->_comp_type = OP_NPC_FOLLOW;
+    ov->_ai_target_obj = ev.target_id;
+    PostQueuedCompletionStatus(h_iocp, 1, ev.obj_id, &ov->_over);
 }
 
-void attack_player(const TIMER_EVENT&)
-{
-}
+
 
 

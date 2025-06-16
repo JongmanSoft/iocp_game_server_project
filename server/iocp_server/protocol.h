@@ -70,7 +70,7 @@ inline int need_next_level_exp(int level) {
 	return need_exps[my_level];
 }
 
-constexpr short NPC_MAX_HP[2] = { 10,40 };
+constexpr short NPC_MAX_HP[2] = { 100,200 };
 constexpr short NPC_EXP[2] = { 50,80 };
 constexpr short NPC_DAMMAGE[2] = { 5,10 };
 constexpr short npc_state_dir[4] = { MOVE_DOWN,MOVE_RIGHT,MOVE_LEFT,MOVE_UP };
