@@ -12,6 +12,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <cmath>
+#include <queue>
 #include <memory>
 #include <mutex>
 #include <unordered_set>

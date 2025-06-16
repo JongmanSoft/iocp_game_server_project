@@ -46,9 +46,17 @@ void load_view_list(int c_id) {
 					c->send_add_player_packet(p->_id);
 				}
 				else {
-
+					shared_ptr <NPC> npl = std::dynamic_pointer_cast<NPC>(p);
 					c->send_add_object_packet(p->_id);
 					if (can_see(p->_id, c_id))WakeUp(p->_id, c_id);
+					if (can_agro(p_id, c_id) && false == npl->_is_active&& npl->_o_type == S_HUMAN) {
+						c->send_chat_packet(p->_id, "오크녀석이 감히 마을에 들어와?!");
+						npl->targer_id = c_id;
+						TIMER_EVENT TE(npl->_id, 0.5, follow_move, c_id);
+						TIQ.push(TE);
+						bool old_state = false;
+						if (!atomic_compare_exchange_strong(&npl->_is_active, &old_state, true))break;
+					}
 				}
 			}
 		}
@@ -103,8 +111,17 @@ void update_view_list(int c_id) {
 		
 		}
 		else { 
+			//npc일경우
 			auto npl = std::dynamic_pointer_cast<NPC>(cpll);
 			WakeUp(npl->_id, c_id);
+			if (can_agro(npl->_id, c_id) && false == npl->_is_active &&npl->_o_type == S_HUMAN) {
+				c->send_chat_packet(pl, "오크녀석이 감히 마을에 들어와?!");
+				npl->targer_id = c_id;
+				TIMER_EVENT TE(npl->_id, 0.5, follow_move, c_id);
+				TIQ.push(TE);
+				bool old_state = false;
+				if (!atomic_compare_exchange_strong(&npl->_is_active, &old_state, true))break;
+			}
 		}
 		if (old_vlist.count(pl) == 0) {
 			if (is_pc(pl))c->send_add_player_packet(pl);
@@ -901,7 +918,23 @@ void worker_thread(HANDLE h_iocp)
 			}
 			break;
 		}
-		
+		case OP_NPC_FOLLOW: {
+			char dir = ai_follow_move(key,ex_over->_ai_target_obj);
+			update_animation(key, WALK, dir);
+			update_move(key);
+			auto it = object.find(key);
+			if (it == object.end()) return;
+			std::shared_ptr<NPC> npc = std::dynamic_pointer_cast<NPC>(it->second.load());
+			if (keep_alive(key)) {
+				TIMER_EVENT te(key, 0.5, follow_move, 0);
+				TIQ.push(te);
+			}
+			else {
+				bool old_state = true;
+				if (!atomic_compare_exchange_strong(&npc->_is_active, &old_state, true))break;
+			}
+			break;
+		}
 		}
 		
 	}
