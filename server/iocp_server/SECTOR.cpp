@@ -35,6 +35,33 @@ bool can_see(int from, int to)
 	return (abs(from_p->x - to_p->x) <= VIEW_RANGE) && abs(from_p->y - to_p->y) <= VIEW_RANGE;
 }
 
+bool can_attack(int from, int to, char dir)
+{
+	shared_ptr<OBJECT>from_p = object.at(from);
+	shared_ptr<OBJECT>to_p = object.at(to);
+	switch (dir)
+	{
+	case 0: //down
+		return (from_p->x==to_p->x)&&(from_p->y+1 == to_p->y);
+	case 1://up
+		return (from_p->x == to_p->x) && (from_p->y - 1 == to_p->y);
+	case 2://left
+		return (from_p->x-1 == to_p->x) && (from_p->y == to_p->y);
+	case 3://right
+		return (from_p->x - 1 == to_p->x) && (from_p->y == to_p->y);
+	default:
+		break;
+	}
+	return false;
+}
+
+bool can_skill(int from, int to)
+{
+	shared_ptr<OBJECT>from_p = object.at(from);
+	shared_ptr<OBJECT>to_p = object.at(to);
+	return (abs(from_p->x - to_p->x) <= 3) && abs(from_p->y - to_p->y) <= 3;
+}
+
 bool is_pc(int object_id)
 {
 	return object_id < MAX_USER;

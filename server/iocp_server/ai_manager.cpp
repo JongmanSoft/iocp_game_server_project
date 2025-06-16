@@ -56,19 +56,29 @@ void WakeUp(int npc_id, int waker)
        break;
     case HUMAN:
         {
-       
+        OVER_EXP* exover = new OVER_EXP;
+        exover->_comp_type = OP_PLAYER_DAMMAGE;
+        exover->_ai_target_obj = npc_id; //해를 가한 npc의 아이디
+        PostQueuedCompletionStatus(h_iocp, 1, waker, &exover->_over);
        
        }
         break;
     case S_HUMAN:
         {
-
+        OVER_EXP* exover = new OVER_EXP;
+        exover->_comp_type = OP_PLAYER_DAMMAGE;
+        exover->_ai_target_obj = npc_id;  //해를 가한 npc의 아이디
+        PostQueuedCompletionStatus(h_iocp, 1, waker, &exover->_over);
               }
         break;
     default:
         break;
     }
    
+}
+
+void attack_up(int npc_id, int waker)
+{
 }
 
 int api_send_hello(lua_State* L)

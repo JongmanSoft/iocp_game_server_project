@@ -127,7 +127,7 @@ void update_view_list(int c_id) {
 void update_animation(int c_id, int state, char dir) {
 	auto it = object.find(c_id);
 	if (it == object.end()) return;
-	std::shared_ptr<USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
+	std::shared_ptr<OBJECT> c =it->second.load();
 	std::pair<int, int>index = get_sector_index(c->x, c->y);
 	std::pair<int, int> min_index = { max(0,index.first - 1), max(0,index.second - 1) };
 	std::pair<int, int> max_index = {
@@ -154,6 +154,7 @@ void update_animation(int c_id, int state, char dir) {
 				if (is_pc(p->_id)) {
 					shared_ptr <USER> PP = std::dynamic_pointer_cast<USER>(p);
 					PP->send_state_packet(c_id,state,dir);
+					if (is_npc(c_id))PP->send_stat_packet(c_id);
 				}
 		
 			}
@@ -198,6 +199,111 @@ void update_chat(int c_id, const char* mess) {
 	}
 }
 
+void update_attack(int c_id, char action, char dir) {
+
+	//c_id:행동을 한 유저, action:그 유저가 한 행동
+	auto it = object.find(c_id);
+	if (it == object.end()) return;
+	std::shared_ptr<USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
+	std::pair<int, int>index = get_sector_index(c->x, c->y);
+	std::pair<int, int> min_index = { max(0,index.first - 1), max(0,index.second - 1) };
+	std::pair<int, int> max_index = {
+		min(MAP_HEIGHT / SECTOR_SIZE - 1,index.first + 1),
+			min(MAP_WIDTH / SECTOR_SIZE - 1,index.second + 1) };
+
+	for (int row = min_index.first; row < max_index.first + 1; row++) {
+		for (int col = min_index.second; col < max_index.second + 1; col++) {
+			concurrency::concurrent_unordered_set<int> local_list;
+			{
+				std::lock_guard<std::mutex> ll(g_sector_mutexes[row][col]);
+				local_list = g_sectors[row][col];
+			}
+
+			for (const int& p_id : local_list) {
+				shared_ptr<OBJECT>p = object.at(p_id);
+				{
+					lock_guard<mutex> ll(p->_s_lock);
+					if (ST_INGAME != p->_state) continue;
+				}
+				if (p->_id == c_id) continue;
+				if (ACTION_ATTACK == action) {
+					if (is_pc(p->_id))continue;
+					if (false == can_attack(c_id, p->_id, dir))continue;
+					//때리는데 성공함!
+					shared_ptr <NPC> PP = std::dynamic_pointer_cast<NPC>(p);
+					if (PP->_o_type != ORC_NPC) {
+						std::cout << "<전투메세지>" << c_id << "가 " << p_id << "에게 " << Dammage(c->_level) << "데미지의 공격!" << std::endl;
+						PP->_hp -= Dammage(c->_level);
+						c->send_stat_packet(p->_id);
+						if (PP->_hp <= 0) {
+							std::cout << "<전투메세지>" << c_id << "가 " << p_id <<  "를 물리쳤다!" << std::endl;
+							PP->_state = ST_FREE;
+							delete_sector(p_id, PP->x, PP->y);
+							update_animation(p_id, DEATH, npc_state_dir[dir]);
+							c->_exp += NPC_EXP[c->_o_type - 2];
+							if (c->_exp > need_next_level_exp(c->_level)) {
+								//레벨업!
+								int remain_exp = c->_exp - need_next_level_exp(c->_level);
+								c->_level += 1;
+								c->_exp = remain_exp;
+							}
+							c->send_stat_packet(c_id);
+						}
+						else {
+							update_animation(p_id, HURT, npc_state_dir[dir]);
+						}
+					}
+					
+					
+				}
+				else if (ACTION_ATTACK_SKILL == action) {
+					if (is_pc(p->_id))continue;
+					if (false == can_skill(c_id, p->_id))continue;
+					//때리는데 성공함!
+					shared_ptr <NPC> PP = std::dynamic_pointer_cast<NPC>(p);
+					if (PP->_o_type != ORC_NPC) {
+						std::cout << "<전투메세지>" << c_id << "가 " << p_id << "에게 " << Dammage(c->_level) << "데미지의 전체공격!" << std::endl;
+						PP->_hp -= Dammage(c->_level);
+						c->send_stat_packet(p->_id);
+						if (PP->_hp <= 0) {
+							std::cout << "<전투메세지>" << c_id << "가 " << p_id << "를 물리쳤다!" << std::endl;
+							PP->_state = ST_FREE;
+							delete_sector(p_id, PP->x, PP->y);
+							update_animation(p_id, DEATH, npc_state_dir[dir]);
+							c->_exp += NPC_EXP[c->_o_type - 2];
+							if (c->_exp > need_next_level_exp(c->_level)) {
+								//레벨업!
+								int remain_exp = c->_exp - need_next_level_exp(c->_level);
+								c->_level += 1;
+								c->_exp = remain_exp;
+							}
+							c->send_stat_packet(c_id);
+						}
+						else {
+							update_animation(p_id, HURT, npc_state_dir[dir]);
+						}
+					}
+				}
+				else if (ACTION_HEAL_SKILL == action) {
+
+					if (is_npc(p->_id))continue;
+					if (false == can_skill(c_id, p->_id))continue;
+					//회복스킬 성공함!
+					shared_ptr <USER> PP = std::dynamic_pointer_cast<USER>(p);
+						std::cout << "<전투메세지>" << c_id << "가 " << p_id << "에게 회복스킬 시전!" << std::endl;
+						PP->_hp += 20;
+						PP->_hp = min(MaxHP(PP->_level), PP->_hp);
+						PP->send_stat_packet(p_id);
+						DB_event DBE(DB_SAVE_HP, p_id);
+						DBQ.push(DBE);
+					
+				}
+				
+
+			}
+		}
+	}
+}
 
 void init_npc() {
 	for (int i = 0; i < 400; i++) {
@@ -276,8 +382,10 @@ void process_packet(int c_id, char* packet) {
 	case C2S_P_ATTACK: {
 		if (c->_able_attack) {
 			cs_packet_attack* p = reinterpret_cast<cs_packet_attack*>(packet);
-			c->send_state_packet(c_id, ATTACK, p->direction);
-			update_animation(c_id, ATTACK, p->direction);
+			//클라방향을 받음...서버방향으로 변환해서 주자
+			int server_dir[4] = {MOVE_DOWN,MOVE_UP,MOVE_LEFT,MOVE_RIGHT};
+			c->send_state_packet(c_id, ATTACK, server_dir[p->direction]);
+			update_animation(c_id, ATTACK, server_dir[p->direction]);
 			bool old_state = true;
 			if (!atomic_compare_exchange_strong(&c->_able_attack, &old_state, false))break;
 			TIMER_EVENT ev(c_id,1,attack_update,0);
@@ -449,10 +557,22 @@ void worker_thread(HANDLE h_iocp)
 			c->_hp += (MaxHP(c->_level) * 0.1);
 			c->_hp = min(c->_hp, MaxHP(c->_level));
 			c->send_stat_packet(key);
+			DB_event dev = { DB_SAVE_HP, key };
+			DBQ.push(dev);
 			if (c->_hp < MaxHP(c->_level)) {
 				TIMER_EVENT ev(key, 5, heal_update, 0);
 				TIQ.push(ev);
 			}
+			break;
+		}
+		case OP_PLAYER_DAMMAGE: {
+			auto it = object.find(ex_over->_ai_target_obj);
+			if (it == object.end()) break;
+			shared_ptr <OBJECT> npc =it->second.load();
+			if (npc->_o_type == S_HUMAN) {
+				update_animation(npc->_id, ATTACK, 0);
+			}
+
 			break;
 		}
 		}
@@ -486,4 +606,5 @@ int main() {
 
 	return 0;
 }
+
 

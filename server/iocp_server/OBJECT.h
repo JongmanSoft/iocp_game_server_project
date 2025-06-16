@@ -100,8 +100,8 @@ public:
 		//npc들만 쓸 생성자
 		_id = id;
 		if (o_type == ORC_NPC)sprintf_s(_name, "%d번 오크", id);
-		if (o_type == HUMAN)sprintf_s(_name, "%d번 마을사람", id);
-		if (o_type == S_HUMAN)sprintf_s(_name, "%d번 전사", id);
+		if (o_type == HUMAN)sprintf_s(_name, "%d번 마을사람", id),_hp = NPC_MAX_HP[0];
+		if (o_type == S_HUMAN)sprintf_s(_name, "%d번 전사", id), _hp = NPC_MAX_HP[1];
 		_state = ST_INGAME;
 		_is_active = false;
 		// Lua 상태 초기화

@@ -7,6 +7,8 @@ void ai_init();
 
 void WakeUp(int npc_id, int waker);
 
+void attack_up(int npc_id, int waker);
+
 int api_send_hello(lua_State* L);
 
 int api_get_x(lua_State* L);

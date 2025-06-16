@@ -6,6 +6,17 @@ inline int MaxHP(int level) {
 inline int Dammage(int level) {
 	return 7 + (level * 3);
 }
+inline int need_next_level_exp(int level) {
+	int need_exps[10] = { 0,100,200,400,800,1200,1500,2000,3000,5000 };
+	int my_level = (level - 1 > 9) ? 9 : level - 1;
+	return need_exps[my_level];
+}
+constexpr short NPC_MAX_HP[2] = { 10,35 };
+constexpr short NPC_EXP[2] = { 50,80 };
+constexpr short NPC_DAMMAGE[2] = { 5,10 };
+constexpr short npc_state_dir[4] = {3,0,2,1};
+
+
 constexpr short GAME_PORT = 3000;
 
 constexpr short BUF_SIZE = 200;
@@ -39,6 +50,10 @@ constexpr char MOVE_UP = 1;
 constexpr char MOVE_DOWN = 2;
 constexpr char MOVE_LEFT = 3;
 constexpr char MOVE_RIGHT = 4;
+
+constexpr char ACTION_ATTACK = 0;
+constexpr char ACTION_ATTACK_SKILL = 1;
+constexpr char ACTION_HEAL_SKILL = 2;
 
 constexpr unsigned short MAP_HEIGHT = 2000;
 constexpr unsigned short MAP_WIDTH = 2000;
