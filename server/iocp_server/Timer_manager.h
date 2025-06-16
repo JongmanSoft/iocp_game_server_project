@@ -22,8 +22,11 @@ public:
 extern concurrency::concurrent_priority_queue<TIMER_EVENT> TIQ; //실행시간이 다된 이벤트만 들어감
 
 void Do_Timer();
-
+//플레이어 주기 (공격,범위스킬,회복스킬,회복)
 void attack_update(const TIMER_EVENT&);
+void attack_skill_update(const TIMER_EVENT&);
+void heal_skiil_update(const TIMER_EVENT&);
+void heal_update(const TIMER_EVENT&);
 
 void random_move(const TIMER_EVENT&);
 

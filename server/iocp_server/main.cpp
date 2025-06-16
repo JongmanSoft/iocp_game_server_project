@@ -273,7 +273,18 @@ void process_packet(int c_id, char* packet) {
 		update_chat(c_id,p->message);
 	}
 		break;
-	
+	case C2S_P_ATTACK: {
+		if (c->_able_attack) {
+			cs_packet_attack* p = reinterpret_cast<cs_packet_attack*>(packet);
+			c->send_state_packet(c_id, ATTACK, p->direction);
+			update_animation(c_id, ATTACK, p->direction);
+			bool old_state = true;
+			if (!atomic_compare_exchange_strong(&c->_able_attack, &old_state, false))break;
+			TIMER_EVENT ev(c_id,1,attack_update,0);
+			TIQ.push(ev);
+		}
+		break;
+	}
 	}
 	
 }
@@ -365,7 +376,6 @@ void worker_thread(HANDLE h_iocp)
 			c->send_login_info_packet();
 			load_view_list(c->_id);
 		}
-			
 			break;
 		case OP_DB_NEW_USER: {
 			std::wcout << L"NEW_USER!" << std::endl;
@@ -387,9 +397,7 @@ void worker_thread(HANDLE h_iocp)
 			DBQ.push(dev);
 
 		}
-			
 			break;
-
 		case OP_AI_HELLO:
 			{
 			auto it = object.find(key);
@@ -404,6 +412,16 @@ void worker_thread(HANDLE h_iocp)
 			delete ex_over;
 			}
 			break;
+		//player 주기 
+		case OP_PLAYER_ATTACK: {
+			auto it = object.find(key);
+			if (it == object.end()) break;
+			shared_ptr <USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
+			bool old_state = false;
+			if (!atomic_compare_exchange_strong(&c->_able_attack, &old_state, true)) break;
+			//다시 공격할 수 있음!
+			break;
+		}
 		}
 	}
 
@@ -427,10 +445,6 @@ int main() {
 
 	std::cout << "준비끝!" << std::endl;
 
-	for (int i = 0; i < 10; i++) {
-		TIMER_EVENT ev( 1, 3, attack_update, 1);
-		TIQ.push(ev);
-	}
 	timer_thread.join();
 	db_thread.join();
 

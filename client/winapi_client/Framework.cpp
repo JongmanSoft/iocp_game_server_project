@@ -99,6 +99,10 @@ void Framework::stat_change_packet_process(sc_packet_stat_change)
 void Framework::state_packet_process(sc_packet_state p)
 {
 	Play_Scene* scene = static_cast<Play_Scene*>(m_scene.get());
+	if (p.id == player_login_info.id) {
+		scene->change_state(p.state);
+		return;
+	}
 	auto c = scene->objects.find(p.id);
 	if (c == scene->objects.end()) return;
 	std::shared_ptr <object> obj = c->second.load();

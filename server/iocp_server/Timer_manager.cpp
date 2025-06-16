@@ -1,5 +1,5 @@
 #include "Timer_manager.h"
-
+#include "network_manager.h"
 concurrency::concurrent_priority_queue<TIMER_EVENT> TIQ;
 
 void Do_Timer()
@@ -28,9 +28,32 @@ void Do_Timer()
 }
 
 
-void attack_update(const TIMER_EVENT&)
+void attack_update(const TIMER_EVENT& ev)
 {
-    std::cout << "³ª ½ÇÇà!" << std::endl;
+    OVER_EXP* ov = new OVER_EXP;
+    ov->_comp_type = OP_PLAYER_ATTACK;
+    PostQueuedCompletionStatus(h_iocp, 1, ev.obj_id, &ov->_over);
+}
+
+void attack_skill_update(const TIMER_EVENT& ev)
+{
+    OVER_EXP* ov = new OVER_EXP;
+    ov->_comp_type = OP_PLAYER_ATTACK;
+    PostQueuedCompletionStatus(h_iocp, 1, ev.obj_id, &ov->_over);
+}
+
+void heal_skiil_update(const TIMER_EVENT& ev)
+{
+    OVER_EXP* ov = new OVER_EXP;
+    ov->_comp_type = OP_PLAYER_ATTACK;
+    PostQueuedCompletionStatus(h_iocp, 1, ev.obj_id, &ov->_over);
+}
+
+void heal_update(const TIMER_EVENT& ev)
+{
+    OVER_EXP* ov = new OVER_EXP;
+    ov->_comp_type = OP_PLAYER_ATTACK;
+    PostQueuedCompletionStatus(h_iocp, 1, ev.obj_id, &ov->_over);
 }
 
 void random_move(const TIMER_EVENT&)
