@@ -39,7 +39,7 @@ void object::draw(HDC m_hBufferDC, int px, int py)
 	int render_y = _y - (py - (MAP_CULLING / 2));
 	TextOut(m_hBufferDC, (render_x * 32) -10, (render_y * 32) - 16, name_wstr.c_str(), name_wstr.length());
 
-	mess_ptr->render(m_hBufferDC, _x, _y, px, py);
+	//mess_ptr->render(m_hBufferDC, _x, _y, px, py);
 	DeleteObject(hFont);
 }
 

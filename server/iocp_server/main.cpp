@@ -242,7 +242,7 @@ void update_attack(int c_id, char action, char dir) {
 							std::string str_result = std::string(c->_name) + "가 " + std::string(PP->_name) + "를 물리쳤다!";
 							std::cout << str_result << std::endl;
 							c->send_chat_packet(-1, str_result.c_str());
-
+							c->send_chat_packet(p_id, "크윽...오크녀석...");
 							
 							PP->_state = ST_FREE;
 							delete_sector(p_id, PP->x, PP->y);
@@ -281,6 +281,7 @@ void update_attack(int c_id, char action, char dir) {
 							std::string str_result = std::string(c->_name) + "가 " + std::string(PP->_name) + "를 물리쳤다!";
 							std::cout << str_result << std::endl;
 							c->send_chat_packet(-1, str_result.c_str());
+							c->send_chat_packet(p_id, "크윽...오크녀석...");
 
 							PP->_state = ST_FREE;
 							delete_sector(p_id, PP->x, PP->y);
@@ -487,6 +488,35 @@ void process_packet(int c_id, char* packet) {
 			}
 		}
 		
+		break;
+	}
+	case C2S_P_SKILL: {
+		if (c->_is_live) {
+			cs_packet_use_skill* p = reinterpret_cast<cs_packet_use_skill*>(packet);
+			if (p->action == ACTION_ATTACK_SKILL) {
+				std::cout << "공격스킬을 쓸라고는함." << std::endl;
+				if (c->_able_attack_skill) {
+					update_attack(c_id, p->action, c->_dir);
+					bool old_state = true;
+					if (!atomic_compare_exchange_strong(&c->_able_attack_skill, &old_state, false))break;
+					TIMER_EVENT ev(c_id, 3, attack_skill_update, 0);
+					TIQ.push(ev);
+					break;
+				}
+			}
+			else if (p->action == ACTION_HEAL_SKILL) {
+				if (c->_able_heal_skill) {
+					update_attack(c_id, p->action, c->_dir);
+					bool old_state = true;
+					if (!atomic_compare_exchange_strong(&c->_able_heal_skill, &old_state, false))break;
+					TIMER_EVENT ev(c_id, 3, heal_skiil_update, 0);
+					TIQ.push(ev);
+					break;
+				}
+			}
+			
+		}
+
 		break;
 	}
 	}

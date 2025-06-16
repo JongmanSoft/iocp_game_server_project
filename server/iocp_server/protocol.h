@@ -22,6 +22,7 @@ constexpr char C2S_P_TELEPORT = 12;		// 동접 테스트 할 때
 
 constexpr char S2C_P_STATE = 13;
 constexpr char C2S_P_STATE = 14;
+constexpr char C2S_P_SKILL = 15;
 
 // 시작마을의 HOTSPOT을 방지하기 위해 
 // RANDOM TELEPORT할 때 사용
@@ -187,6 +188,13 @@ struct cs_packet_state {
 	char  type;
 	int state;
 	char  direction;
+};
+
+struct cs_packet_use_skill
+{
+	unsigned char  size;
+	char  type;
+	char  action;
 };
 
 #pragma pack (pop)

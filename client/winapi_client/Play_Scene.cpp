@@ -154,6 +154,11 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
             obj->draw(m_hBufferDC, player->_x, player->_y);
         }
         player->draw(m_hBufferDC);
+        // 오브젝트 그리기
+        for (const auto& pair : objects) {
+            std::shared_ptr<object> obj = pair.second.load();
+            if (obj->mess_ptr->current_frame > 0) obj->mess_ptr->render(m_hBufferDC,obj->_x, obj->_y, player->_x, player->_y);
+        }
 
         // 폰트 선택
         HFONT old_font = (HFONT)SelectObject(m_hBufferDC, chat_font);
@@ -293,11 +298,11 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
             case 65: // A
                 NonBlockingClient::get_inst().sendAttackPacket(player->state_ptr->dir);
                 break;
-            case 67: // C
-                change_state(HURT);
+            case 68: // D 공격스킬
+                NonBlockingClient::get_inst().sendUseSkill(ACTION_ATTACK_SKILL);
                 break;
-            case 68: // D
-                change_state(DEATH);
+            case 83: // S
+                NonBlockingClient::get_inst().sendUseSkill(ACTION_HEAL_SKILL);
                 break;
             case VK_LEFT:
                 NonBlockingClient::get_inst().sendStatePacket(IDLE, MOVE_LEFT);

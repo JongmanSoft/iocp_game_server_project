@@ -133,6 +133,16 @@ void NonBlockingClient::sendStatePacket(int state, char dir)
     sendQueue_.emplace(std::vector<char>(reinterpret_cast<char*>(&packet), reinterpret_cast<char*>(&packet) + packet.size));
 }
 
+void NonBlockingClient::sendUseSkill(char action)
+{
+    cs_packet_use_skill packet = {};
+    packet.size = sizeof(cs_packet_use_skill);
+    packet.type = C2S_P_SKILL;
+    packet.action = action;
+    std::lock_guard<std::mutex> lock(sendMutex_);
+    sendQueue_.emplace(std::vector<char>(reinterpret_cast<char*>(&packet), reinterpret_cast<char*>(&packet) + packet.size));
+}
+
 void NonBlockingClient::processNetwork()
 {
 

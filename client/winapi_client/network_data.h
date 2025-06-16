@@ -26,7 +26,7 @@ public:
     void sendChatPacket(const char* message);
     void sendTeleportPacket();
     void sendStatePacket(int state, char dir);
-
+    void sendUseSkill(char action);
     // 패킷 수신 콜백 설정
     using PacketHandler = std::function<void(const char*, size_t)>;
     void setPacketHandler(PacketHandler handler) { packetHandler_ = handler; }
