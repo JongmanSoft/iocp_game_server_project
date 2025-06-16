@@ -41,14 +41,14 @@ bool can_attack(int from, int to, char dir)
 	shared_ptr<OBJECT>to_p = object.at(to);
 	switch (dir)
 	{
-	case 0: //down
+	case MOVE_DOWN: //down
 		return (from_p->x==to_p->x)&&(from_p->y+1 == to_p->y);
-	case 1://up
+	case MOVE_UP://up
 		return (from_p->x == to_p->x) && (from_p->y - 1 == to_p->y);
-	case 2://left
+	case MOVE_LEFT://left
 		return (from_p->x-1 == to_p->x) && (from_p->y == to_p->y);
-	case 3://right
-		return (from_p->x - 1 == to_p->x) && (from_p->y == to_p->y);
+	case MOVE_RIGHT://right
+		return (from_p->x + 1 == to_p->x) && (from_p->y == to_p->y);
 	default:
 		break;
 	}

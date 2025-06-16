@@ -1,22 +1,4 @@
 #pragma once
-inline int MaxHP(int level) {
-	if (level < 1) return 80; // 추가 로직
-	return 80 + (level * 20);
-}
-inline int Dammage(int level) {
-	return 7 + (level * 3);
-}
-inline int need_next_level_exp(int level) {
-	int need_exps[10] = { 0,100,200,400,800,1200,1500,2000,3000,5000 };
-	int my_level = (level - 1 > 9) ? 9 : level - 1;
-	return need_exps[my_level];
-}
-constexpr short NPC_MAX_HP[2] = { 10,35 };
-constexpr short NPC_EXP[2] = { 50,80 };
-constexpr short NPC_DAMMAGE[2] = { 5,10 };
-constexpr short npc_state_dir[4] = {3,0,2,1};
-
-
 constexpr short GAME_PORT = 3000;
 
 constexpr short BUF_SIZE = 200;
@@ -72,6 +54,24 @@ constexpr int WALK = 1;
 constexpr int HURT = 2;
 constexpr int ATTACK = 3;
 constexpr int DEATH = 4;
+
+//npc
+inline int MaxHP(int level) {
+	if (level < 1) return 80; // 추가 로직
+	return 80 + (level * 20);
+}
+inline int Dammage(int level) {
+	return 7 + (level * 3);
+}
+inline int need_next_level_exp(int level) {
+	int need_exps[10] = { 0,100,200,400,800,1200,1500,2000,3000,5000 };
+	int my_level = (level - 1 > 9) ? 9 : level - 1;
+	return need_exps[my_level];
+}
+constexpr short NPC_MAX_HP[2] = { 10,35 };
+constexpr short NPC_EXP[2] = { 50,80 };
+constexpr short NPC_DAMMAGE[2] = { 5,10 };
+constexpr short npc_state_dir[4] = { MOVE_DOWN,MOVE_RIGHT,MOVE_LEFT,MOVE_UP };
 
 #pragma pack (push, 1)
 

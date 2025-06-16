@@ -239,7 +239,7 @@ void update_attack(int c_id, char action, char dir) {
 							std::cout << "<전투메세지>" << c_id << "가 " << p_id <<  "를 물리쳤다!" << std::endl;
 							PP->_state = ST_FREE;
 							delete_sector(p_id, PP->x, PP->y);
-							update_animation(p_id, DEATH, npc_state_dir[dir]);
+							update_animation(p_id, DEATH, npc_state_dir[dir-1]);
 							c->_exp += NPC_EXP[c->_o_type - 2];
 							if (c->_exp > need_next_level_exp(c->_level)) {
 								//레벨업!
@@ -250,7 +250,7 @@ void update_attack(int c_id, char action, char dir) {
 							c->send_stat_packet(c_id);
 						}
 						else {
-							update_animation(p_id, HURT, npc_state_dir[dir]);
+							update_animation(p_id, HURT, npc_state_dir[dir-1]);
 						}
 					}
 					
@@ -269,7 +269,7 @@ void update_attack(int c_id, char action, char dir) {
 							std::cout << "<전투메세지>" << c_id << "가 " << p_id << "를 물리쳤다!" << std::endl;
 							PP->_state = ST_FREE;
 							delete_sector(p_id, PP->x, PP->y);
-							update_animation(p_id, DEATH, npc_state_dir[dir]);
+							update_animation(p_id, DEATH, npc_state_dir[dir-1]);
 							c->_exp += NPC_EXP[c->_o_type - 2];
 							if (c->_exp > need_next_level_exp(c->_level)) {
 								//레벨업!
@@ -280,7 +280,7 @@ void update_attack(int c_id, char action, char dir) {
 							c->send_stat_packet(c_id);
 						}
 						else {
-							update_animation(p_id, HURT, npc_state_dir[dir]);
+							update_animation(p_id, HURT, npc_state_dir[dir-1]);
 						}
 					}
 				}
@@ -306,9 +306,21 @@ void update_attack(int c_id, char action, char dir) {
 }
 
 void init_npc() {
-	for (int i = 0; i < 400; i++) {
-		shared_ptr <NPC> p = make_shared<NPC>(MAX_USER+i,ORC_NPC,i);
-		object.insert(make_pair(MAX_USER + i, p));
+	int npc_id = 0;
+	for (int i = 0; i < 1; i++) {
+		for (int j = 0; j <100; j++) {
+			
+			shared_ptr <NPC> human_p = make_shared<NPC>(MAX_USER + npc_id, HUMAN, i);
+			object.insert(make_pair(MAX_USER + npc_id, human_p));
+
+			npc_id++;
+
+			shared_ptr <NPC> s_human_p = make_shared<NPC>(MAX_USER + npc_id, S_HUMAN, i);
+			object.insert(make_pair(MAX_USER + npc_id, s_human_p));
+
+			npc_id++;
+		}
+		
 	}
 }
 //
@@ -358,7 +370,7 @@ void process_packet(int c_id, char* packet) {
 			c->x = x; c->y = y;
 			insert_sector(c->_id, c->x, c->y);
 		}
-	
+		c->_dir = p->direction;
 		DB_event dev = { DB_SAVE_XY, c_id };
 		DBQ.push(dev);
 
@@ -386,6 +398,8 @@ void process_packet(int c_id, char* packet) {
 			int server_dir[4] = {MOVE_DOWN,MOVE_UP,MOVE_LEFT,MOVE_RIGHT};
 			c->send_state_packet(c_id, ATTACK, server_dir[p->direction]);
 			update_animation(c_id, ATTACK, server_dir[p->direction]);
+			c->_dir = server_dir[p->direction];
+			update_attack(c_id, ACTION_ATTACK, c->_dir);
 			bool old_state = true;
 			if (!atomic_compare_exchange_strong(&c->_able_attack, &old_state, false))break;
 			TIMER_EVENT ev(c_id,1,attack_update,0);
@@ -566,16 +580,46 @@ void worker_thread(HANDLE h_iocp)
 			break;
 		}
 		case OP_PLAYER_DAMMAGE: {
-			auto it = object.find(ex_over->_ai_target_obj);
+			//find object
+			auto it = object.find(key);
 			if (it == object.end()) break;
-			shared_ptr <OBJECT> npc =it->second.load();
-			if (npc->_o_type == S_HUMAN) {
-				update_animation(npc->_id, ATTACK, 0);
+			shared_ptr <USER> me = std::dynamic_pointer_cast<USER>(it->second.load());
+			auto nt = object.find(ex_over->_ai_target_obj);
+			if (nt == object.end()) break;
+			shared_ptr <NPC> npc =std::dynamic_pointer_cast<NPC>(nt->second.load());
+			if ((me->x == npc->x) && (me->y == npc->y)) {
+				
+				//animation update
+				me->send_state_packet(key, HURT, me->_dir);
+				update_animation(key, HURT, me->_dir);
+				if (npc->_o_type == S_HUMAN) {
+					update_animation(npc->_id, ATTACK, npc_state_dir[me->_dir - 1]);
+				}
+
+				//apply dammage
+				std::cout << "적:" << npc->_id << "가 " << "플레이어:" << me->_id << "에게 " << NPC_DAMMAGE[npc->_o_type - 2] << "데미지 공격!" << std::endl;
+				me->_hp -= NPC_DAMMAGE[npc->_o_type - 2];
+				if (me->_hp <= 0) {
+					//주금 ㅠ
+					me->_hp = 0;
+					me->_exp = me->_exp / 2;
+					me->send_state_packet(key, DEATH, me->_dir);
+					TIMER_EVENT tev(key, 30, relive_update, 0);
+					TIQ.push(tev);
+					//todo 시야의 플레이어들에게 leave전송
+
+				}
+				me->send_stat_packet(me->_id);
+				DB_event dbe(DB_SAVE_HP, me->_id);
+				DBQ.push(dbe);
 			}
+			
+
 
 			break;
 		}
 		}
+		
 	}
 
 }
@@ -586,7 +630,7 @@ int main() {
 	DB_init();
 	ai_init();
 	network_init();
-	//init_npc();
+	init_npc();
 
 	vector <thread> worker_threads;
 	int num_threads = std::thread::hardware_concurrency();

@@ -27,6 +27,7 @@ void attack_update(const TIMER_EVENT&);
 void attack_skill_update(const TIMER_EVENT&);
 void heal_skiil_update(const TIMER_EVENT&);
 void heal_update(const TIMER_EVENT&);
+void relive_update(const TIMER_EVENT&);
 
 void random_move(const TIMER_EVENT&);
 

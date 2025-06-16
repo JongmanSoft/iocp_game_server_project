@@ -37,7 +37,7 @@ public:
 	int		_prev_remain;
 	concurrency::concurrent_unordered_set <int> _view_list;
 	int		last_move_time;
-
+	char	_dir;
 public:
 	
 
@@ -51,6 +51,7 @@ public:
 		_name[0] = 0;
 		_prev_remain = 0;
 		_o_type = PLAYER;
+		_dir = MOVE_DOWN;
 	}
 
 	void do_recv();
@@ -125,48 +126,53 @@ public:
 			return;
 		}
 
-
-		lua_newtable(L); // 외부 테이블
-		int collision_table_idx = lua_gettop(L); // 테이블의 스택 인덱스 저장
-		for (size_t i = 0; i < collision_data.size(); ++i) {
-			lua_pushnumber(L, i + 1); // Lua 인덱스 1-based
-			lua_newtable(L); // 내부 테이블
-			for (size_t j = 0; j < collision_data[i].size(); ++j) {
-				lua_pushnumber(L, j + 1);
-				lua_pushboolean(L, collision_data[i][j]);
-				lua_settable(L, -3); // 내부 테이블에 설정
+		do
+		{
+			lua_newtable(L); // 외부 테이블
+			int collision_table_idx = lua_gettop(L); // 테이블의 스택 인덱스 저장
+			for (size_t i = 0; i < collision_data.size(); ++i) {
+				lua_pushnumber(L, i + 1); // Lua 인덱스 1-based
+				lua_newtable(L); // 내부 테이블
+				for (size_t j = 0; j < collision_data[i].size(); ++j) {
+					lua_pushnumber(L, j + 1);
+					lua_pushboolean(L, collision_data[i][j]);
+					lua_settable(L, -3); // 내부 테이블에 설정
+				}
+				lua_settable(L, -3);
 			}
-			lua_settable(L, -3); 
-		}
 
-		lua_getglobal(L, "set_init_npc_");
-		if (!lua_isfunction(L, -1)) {
-			lua_pop(L, 1);
-			return;
-		}
-		lua_pushnumber(L, o_type); // o_type
-		lua_pushnumber(L, zone); // zone (임시)
-		lua_pushvalue(L, collision_table_idx); // collision_array 테이블 복사
-		if (lua_pcall(L, 3, 2, 0)) {
-			lua_pop(L, 1);
+			lua_getglobal(L, "set_init_npc_");
+			if (!lua_isfunction(L, -1)) {
+				lua_pop(L, 1);
+				return;
+			}
+			lua_pushnumber(L, o_type); // o_type
+			lua_pushnumber(L, zone); // zone (임시)
+			lua_pushvalue(L, collision_table_idx); // collision_array 테이블 복사
+			if (lua_pcall(L, 3, 2, 0)) {
+				lua_pop(L, 1);
+				lua_pop(L, 1); // collision_array 테이블 제거
+				return;
+			}
+
+			// 반환값 처리
+			if (lua_isnumber(L, -2) && lua_isnumber(L, -1)) {
+				x = static_cast<int>(lua_tonumber(L, -2));
+				y = static_cast<int>(lua_tonumber(L, -1));
+			}
+
+			lua_pop(L, 2); // 반환값 제거
 			lua_pop(L, 1); // collision_array 테이블 제거
-			return;
-		}
 
-		// 반환값 처리
-		if (lua_isnumber(L, -2) && lua_isnumber(L, -1)) {
-			x = static_cast<int>(lua_tonumber(L, -2));
-			y = static_cast<int>(lua_tonumber(L, -1));
-		}
-		
-		lua_pop(L, 2); // 반환값 제거
-		lua_pop(L, 1); // collision_array 테이블 제거
-
+		} while (collision_data[x%100][y%100]);
+	
 		insert_sector(_id, x, y); 
 	
 		lua_register(L, "api_sendHello", api_send_hello);
 		lua_register(L, "api_get_x", api_get_x);
 		lua_register(L, "api_get_y", api_get_y);
+	
+	
 	}
 
 	

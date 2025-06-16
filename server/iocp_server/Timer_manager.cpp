@@ -56,6 +56,13 @@ void heal_update(const TIMER_EVENT& ev)
     PostQueuedCompletionStatus(h_iocp, 1, ev.obj_id, &ov->_over);
 }
 
+void relive_update(const TIMER_EVENT& ev)
+{
+    OVER_EXP* ov = new OVER_EXP;
+    ov->_comp_type = OP_PLAYER_RELIVE;
+    PostQueuedCompletionStatus(h_iocp, 1, ev.obj_id, &ov->_over);
+}
+
 void random_move(const TIMER_EVENT&)
 {
 

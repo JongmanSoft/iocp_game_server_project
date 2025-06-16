@@ -11,9 +11,9 @@ function find_free_position(collision_array, rx, ry)
         for j = 1, 10 do
             local array_i = rx + i - 1
             local array_j = ry + j - 1
-            if array_i <= 100 and array_j <= 100 and not collision_array[array_i][array_j] then
-                x = array_j
-                y = array_i
+            if array_i <= 100 and array_i> 0 and array_j> 0 and array_j <= 100 and not collision_array[array_j][array_i] then
+                x = array_j-1
+                y = array_i-1
                 found = true
                 break
             end
@@ -35,14 +35,14 @@ function set_init_npc_(o_type, zone, collision_array)
         x = 49 + (col * 100)
         y = 34 + (row * 100)
     elseif o_type == 2 then
-        local rx = math.random(10, 80)
-        local ry = math.random(40, 90)
-        x, y = find_free_position(collision_array, rx, ry)
+        local rx = math.random(0, 99)
+        local ry = math.random(30, 99)
+        y, x = find_free_position(collision_array, rx, ry)
         x = x+(col * 100)
         y = y+ (row * 100)
     elseif o_type == 3 then
-        local rx = math.random(0, 90)
-        local ry = math.random(0, 25)
+        local rx = math.random(0, 25)
+        local ry = math.random(0, 99)
         x, y = find_free_position(collision_array, rx, ry)
         x = x+(col * 100)
         y = y+ (row * 100)
