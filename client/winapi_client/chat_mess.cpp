@@ -26,7 +26,7 @@ void chat_mess::render(HDC m_hBufferDC)
 				MultiByteToWideChar(CP_ACP, 0, out_str.c_str(), -1, &full_wstr[0], wlen);
 				for (int i = 0; i * 10 < full_wstr.length(); i++) {
 					std::wstring cut_wstr = full_wstr.substr(i * 10, 10);
-					TextOut(m_hBufferDC, (render_x * 32) - 34 - (25) + 25
+					TextOut(m_hBufferDC, (render_x * 32) - 34 
 						, (render_y * 32) - 85 + ((100 - (20 * min(5, current_frame))) / 2) - 30 + 47
 						+ (i * 12)
 						, cut_wstr.c_str(), cut_wstr.length());
@@ -59,7 +59,7 @@ void chat_mess::render(HDC m_hBufferDC, int x, int y,int px, int py)
 			MultiByteToWideChar(CP_ACP, 0, out_str.c_str(), -1, &full_wstr[0], wlen);
 			for (int i = 0; i * 10 < full_wstr.length(); i++) {
 				std::wstring cut_wstr = full_wstr.substr(i * 10, 10);
-				TextOut(m_hBufferDC, (render_x * 32) - 34 - (25) + 25
+				TextOut(m_hBufferDC, (render_x * 32) - 34
 					, (render_y * 32) - 85 + ((100 - (20 * min(5, current_frame))) / 2) - 30 + 47
 					+ (i * 12)
 					, cut_wstr.c_str(), cut_wstr.length());

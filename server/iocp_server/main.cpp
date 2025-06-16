@@ -415,7 +415,7 @@ int main() {
 	DB_init();
 	ai_init();
 	network_init();
-	init_npc();
+	//init_npc();
 
 	vector <thread> worker_threads;
 	int num_threads = std::thread::hardware_concurrency();
@@ -426,6 +426,11 @@ int main() {
 	thread db_thread{ DB_thread };
 
 	std::cout << "ÁØºñ³¡!" << std::endl;
+
+	for (int i = 0; i < 10; i++) {
+		TIMER_EVENT ev( 1, 3, attack_update, 1);
+		TIQ.push(ev);
+	}
 	timer_thread.join();
 	db_thread.join();
 

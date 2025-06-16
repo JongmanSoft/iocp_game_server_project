@@ -40,6 +40,8 @@ public:
 	int _level =1;
 	
 	int _exp = 0;
+
+	std::atomic_bool _able_attack = true; //공격가능
 public:
 	USER(int new_id, SOCKET new_s, S_STATE new_st) :OBJECT(new_id,new_st), _socket{ new_s }
 	{
