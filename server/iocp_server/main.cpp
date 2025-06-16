@@ -248,6 +248,8 @@ void update_attack(int c_id, char action, char dir) {
 								c->_exp = remain_exp;
 							}
 							c->send_stat_packet(c_id);
+							DB_event dbe(DB_SAVE_LEVEL, c_id);
+							DBQ.push(dbe);
 						}
 						else {
 							update_animation(p_id, HURT, npc_state_dir[dir-1]);
@@ -278,6 +280,8 @@ void update_attack(int c_id, char action, char dir) {
 								c->_exp = remain_exp;
 							}
 							c->send_stat_packet(c_id);
+							DB_event dbe(DB_SAVE_LEVEL, c_id);
+							DBQ.push(dbe);
 						}
 						else {
 							update_animation(p_id, HURT, npc_state_dir[dir-1]);
@@ -305,19 +309,57 @@ void update_attack(int c_id, char action, char dir) {
 	}
 }
 
+void update_leave(int c_id) {
+	auto it = object.find(c_id);
+	if (it == object.end()) return;
+	std::shared_ptr<OBJECT> c = it->second.load();
+	std::pair<int, int>index = get_sector_index(c->x, c->y);
+	std::pair<int, int> min_index = { max(0,index.first - 1), max(0,index.second - 1) };
+	std::pair<int, int> max_index = {
+		min(MAP_HEIGHT / SECTOR_SIZE - 1,index.first + 1),
+			min(MAP_WIDTH / SECTOR_SIZE - 1,index.second + 1) };
+
+	for (int row = min_index.first; row < max_index.first + 1; row++) {
+		for (int col = min_index.second; col < max_index.second + 1; col++) {
+			concurrency::concurrent_unordered_set<int> local_list;
+			{
+				std::lock_guard<std::mutex> ll(g_sector_mutexes[row][col]);
+				local_list = g_sectors[row][col];
+			}
+
+			for (const int& p_id : local_list) {
+				shared_ptr<OBJECT>p = object.at(p_id);
+				{
+					lock_guard<mutex> ll(p->_s_lock);
+					if (ST_INGAME != p->_state) continue;
+				}
+				if (p->_id == c_id) continue;
+				if (false == can_see(c_id, p->_id))
+					continue;
+				if (is_pc(p->_id)) {
+					shared_ptr <USER> PP = std::dynamic_pointer_cast<USER>(p);
+					PP->send_remove_object_packet(c_id);
+				}
+
+			}
+		}
+	}
+}
+
 void init_npc() {
 	int npc_id = 0;
 	for (int i = 0; i < 1; i++) {
+		shared_ptr <NPC> orc_p = make_shared<NPC>(MAX_USER + npc_id, ORC_NPC, i);
+		object.insert(make_pair(MAX_USER + npc_id, orc_p));
+		npc_id++;
 		for (int j = 0; j <100; j++) {
 			
 			shared_ptr <NPC> human_p = make_shared<NPC>(MAX_USER + npc_id, HUMAN, i);
 			object.insert(make_pair(MAX_USER + npc_id, human_p));
-
 			npc_id++;
 
 			shared_ptr <NPC> s_human_p = make_shared<NPC>(MAX_USER + npc_id, S_HUMAN, i);
 			object.insert(make_pair(MAX_USER + npc_id, s_human_p));
-
 			npc_id++;
 		}
 		
@@ -352,36 +394,40 @@ void process_packet(int c_id, char* packet) {
 		break;
 	}
 	case C2S_P_MOVE: {
-		cs_packet_move* p = reinterpret_cast<cs_packet_move*>(packet);
-		short x = c->x;
-		short y = c->y;
-		switch (p->direction) {
-		case MOVE_UP: if (y > 0) y--; break;
-		case MOVE_DOWN: if (y < MAP_HEIGHT - 1) y++; break;
-		case MOVE_LEFT: if (x > 0) x--; break;
-		case MOVE_RIGHT: if (x < MAP_WIDTH - 1) x++; break;
-		}
-		if (get_sector_index(c->x, c->y) == get_sector_index(x, y))
-		{
-			c->x = x; c->y = y;
-		}
-		else {
-			delete_sector(c->_id, c->x, c->y);
-			c->x = x; c->y = y;
-			insert_sector(c->_id, c->x, c->y);
-		}
-		c->_dir = p->direction;
-		DB_event dev = { DB_SAVE_XY, c_id };
-		DBQ.push(dev);
+		if (c->_is_live) {
+			cs_packet_move* p = reinterpret_cast<cs_packet_move*>(packet);
+			short x = c->x;
+			short y = c->y;
+			switch (p->direction) {
+			case MOVE_UP: if (y > 0) y--; break;
+			case MOVE_DOWN: if (y < MAP_HEIGHT - 1) y++; break;
+			case MOVE_LEFT: if (x > 0) x--; break;
+			case MOVE_RIGHT: if (x < MAP_WIDTH - 1) x++; break;
+			}
+			if (get_sector_index(c->x, c->y) == get_sector_index(x, y))
+			{
+				c->x = x; c->y = y;
+			}
+			else {
+				delete_sector(c->_id, c->x, c->y);
+				c->x = x; c->y = y;
+				insert_sector(c->_id, c->x, c->y);
+			}
+			c->_dir = p->direction;
+			DB_event dev = { DB_SAVE_XY, c_id };
+			DBQ.push(dev);
 
-		c->send_move_packet(c_id);
-		update_view_list(c_id);
+			c->send_move_packet(c_id);
+			update_view_list(c_id);
 		}
+		}
+		
 				break;
 	case C2S_P_STATE:{
-		cs_packet_state* p = reinterpret_cast<cs_packet_state*>(packet);
-		update_animation(c_id, p->state, p->direction);
-	
+		if (c->_is_live) {
+			cs_packet_state* p = reinterpret_cast<cs_packet_state*>(packet);
+			update_animation(c_id, p->state, p->direction);
+		}
 		}
 		break;
 
@@ -392,19 +438,22 @@ void process_packet(int c_id, char* packet) {
 	}
 		break;
 	case C2S_P_ATTACK: {
-		if (c->_able_attack) {
-			cs_packet_attack* p = reinterpret_cast<cs_packet_attack*>(packet);
-			//클라방향을 받음...서버방향으로 변환해서 주자
-			int server_dir[4] = {MOVE_DOWN,MOVE_UP,MOVE_LEFT,MOVE_RIGHT};
-			c->send_state_packet(c_id, ATTACK, server_dir[p->direction]);
-			update_animation(c_id, ATTACK, server_dir[p->direction]);
-			c->_dir = server_dir[p->direction];
-			update_attack(c_id, ACTION_ATTACK, c->_dir);
-			bool old_state = true;
-			if (!atomic_compare_exchange_strong(&c->_able_attack, &old_state, false))break;
-			TIMER_EVENT ev(c_id,1,attack_update,0);
-			TIQ.push(ev);
+		if (c->_is_live) {
+			if (c->_able_attack) {
+				cs_packet_attack* p = reinterpret_cast<cs_packet_attack*>(packet);
+				//클라방향을 받음...서버방향으로 변환해서 주자
+				int server_dir[4] = { MOVE_DOWN,MOVE_UP,MOVE_LEFT,MOVE_RIGHT };
+				c->send_state_packet(c_id, ATTACK, server_dir[p->direction]);
+				update_animation(c_id, ATTACK, server_dir[p->direction]);
+				c->_dir = server_dir[p->direction];
+				update_attack(c_id, ACTION_ATTACK, c->_dir);
+				bool old_state = true;
+				if (!atomic_compare_exchange_strong(&c->_able_attack, &old_state, false))break;
+				TIMER_EVENT ev(c_id, 1, attack_update, 0);
+				TIQ.push(ev);
+			}
 		}
+		
 		break;
 	}
 	}
@@ -492,6 +541,7 @@ void worker_thread(HANDLE h_iocp)
 				c->y = ex_over->result_info.y;
 				c->_level = ex_over->result_info.level;
 				c->_hp = ex_over->result_info.hp;
+				c->_exp = ex_over->result_info.exp;
 				c->_state = ST_INGAME;
 				insert_sector(c->_id, c->x, c->y);
 			}
@@ -568,15 +618,18 @@ void worker_thread(HANDLE h_iocp)
 			auto it = object.find(key);
 			if (it == object.end()) break;
 			shared_ptr <USER> c = std::dynamic_pointer_cast<USER>(it->second.load());
-			c->_hp += (MaxHP(c->_level) * 0.1);
-			c->_hp = min(c->_hp, MaxHP(c->_level));
-			c->send_stat_packet(key);
-			DB_event dev = { DB_SAVE_HP, key };
-			DBQ.push(dev);
-			if (c->_hp < MaxHP(c->_level)) {
-				TIMER_EVENT ev(key, 5, heal_update, 0);
-				TIQ.push(ev);
+			if (c->_is_live) {
+				c->_hp += (MaxHP(c->_level) * 0.1);
+				c->_hp = min(c->_hp, MaxHP(c->_level));
+				c->send_stat_packet(key);
+				DB_event dev = { DB_SAVE_HP, key };
+				DBQ.push(dev);
+				if (c->_hp < MaxHP(c->_level)) {
+					TIMER_EVENT ev(key, 5, heal_update, 0);
+					TIQ.push(ev);
+				}
 			}
+			
 			break;
 		}
 		case OP_PLAYER_DAMMAGE: {
@@ -601,21 +654,54 @@ void worker_thread(HANDLE h_iocp)
 				me->_hp -= NPC_DAMMAGE[npc->_o_type - 2];
 				if (me->_hp <= 0) {
 					//주금 ㅠ
+					bool old_state = true;
+					if (!atomic_compare_exchange_strong(&me->_is_live, &old_state, false))break;
+
 					me->_hp = 0;
 					me->_exp = me->_exp / 2;
 					me->send_state_packet(key, DEATH, me->_dir);
-					TIMER_EVENT tev(key, 30, relive_update, 0);
+					TIMER_EVENT tev(key, 10, relive_update, 0);
 					TIQ.push(tev);
-					//todo 시야의 플레이어들에게 leave전송
-
+					delete_sector(key, me->x, me->y);
+					//todo leave전달
+					update_leave(key);
+					DB_event dbe(DB_SAVE_LEVEL, me->_id);
+					DBQ.push(dbe);
+				}
+				else if (me->_hp + NPC_DAMMAGE[npc->_o_type - 2] >= MaxHP(me->_level)) {
+					TIMER_EVENT ev(key, 5, heal_update, 0);
+					TIQ.push(ev);
 				}
 				me->send_stat_packet(me->_id);
 				DB_event dbe(DB_SAVE_HP, me->_id);
 				DBQ.push(dbe);
+				
 			}
 			
 
 
+			break;
+		}
+		case OP_PLAYER_RELIVE: {
+			//부활!
+			auto it = object.find(key);
+			if (it == object.end()) break;
+			shared_ptr <USER> me = std::dynamic_pointer_cast<USER>(it->second.load());
+			bool old_state = false;
+			if (!atomic_compare_exchange_strong(&me->_is_live, &old_state, true))break;
+			me->x = init_x;
+			me->y = init_y;
+			me->_hp = MaxHP(me->_level);
+			me->send_move_packet(me->_id);
+			insert_sector(me->_id, me->x, me->y);
+			load_view_list(me->_id);
+			
+			DB_event dev_xy(DB_SAVE_XY,me->_id);
+			DBQ.push(dev_xy);
+			DB_event dev_level(DB_SAVE_LEVEL, me->_id);
+			DBQ.push(dev_level);
+			DB_event dev_hp(DB_SAVE_HP, me->_id);
+			DBQ.push(dev_hp);
 			break;
 		}
 		}

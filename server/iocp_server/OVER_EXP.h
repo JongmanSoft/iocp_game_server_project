@@ -8,6 +8,7 @@ struct USER_TABLE {
     int x, y;
     int level;
     int hp;
+    int exp;
 };
 
 enum COMP_TYPE { OP_ACCEPT, OP_RECV, OP_SEND, 

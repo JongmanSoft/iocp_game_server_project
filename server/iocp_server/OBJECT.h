@@ -38,6 +38,8 @@ public:
 	concurrency::concurrent_unordered_set <int> _view_list;
 	int		last_move_time;
 	char	_dir;
+
+	std::atomic_bool _is_live = true;
 public:
 	
 

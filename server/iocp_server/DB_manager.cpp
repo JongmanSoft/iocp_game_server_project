@@ -120,14 +120,16 @@ void DB_thread()
 
 					// 결과 바인딩
 					SQLWCHAR result_user_id[MAX_ID_LENGTH];
-					SQLINTEGER user_x, user_y, user_level, user_hp;
-					SQLLEN len_user_id = 0, len_user_x = 0, len_user_y = 0, len_user_level = 0, len_user_hp = 0;
+					SQLINTEGER user_x, user_y, user_level, user_hp ,user_exp;
+					SQLLEN len_user_id = 0, len_user_x = 0, len_user_y = 0,
+						len_user_level = 0, len_user_hp = 0, len_user_exp =0;
 
 					retcode = SQLBindCol(DBH.hstmt, 1, SQL_C_WCHAR, result_user_id, sizeof(result_user_id), &len_user_id);
 					retcode = SQLBindCol(DBH.hstmt, 2, SQL_C_LONG, &user_x, sizeof(SQLINTEGER), &len_user_x);
 					retcode = SQLBindCol(DBH.hstmt, 3, SQL_C_LONG, &user_y, sizeof(SQLINTEGER), &len_user_y);
 					retcode = SQLBindCol(DBH.hstmt, 4, SQL_C_LONG, &user_level, sizeof(SQLINTEGER), &len_user_level);
 					retcode = SQLBindCol(DBH.hstmt, 5, SQL_C_LONG, &user_hp, sizeof(SQLINTEGER), &len_user_hp);
+					retcode = SQLBindCol(DBH.hstmt, 6, SQL_C_LONG, &user_exp, sizeof(SQLINTEGER), &len_user_exp);
 
 					// 결과 페치
 					retcode = SQLFetch(DBH.hstmt);
@@ -139,6 +141,7 @@ void DB_thread()
 						exover->result_info.y= (int)user_y;
 						exover->result_info.level = (int)user_level;
 						exover->result_info.hp = (int)user_hp;
+						exover->result_info.exp = (int)user_exp;
 						PostQueuedCompletionStatus(h_iocp, 1 ,c->_id, &exover->_over);
 					}
 					else if (retcode == SQL_NO_DATA) {
@@ -176,10 +179,12 @@ void DB_thread()
 					break;
 				}
 				case DB_SAVE_LEVEL: {
-					SQLWCHAR sql_query[] = L"{CALL update_user_level(?, ?)}"; 
+					SQLWCHAR sql_query[] = L"{CALL update_user_level(?, ?, ?)}"; 
 					SQLINTEGER slevel = c->_level; 
+					SQLINTEGER sexp = c->_exp; 
 					SQLRETURN retcode = SQLBindParameter(DBH.hstmt, 1, SQL_PARAM_INPUT, SQL_C_WCHAR, SQL_WCHAR, 50, 0, wname, sizeof(wname), nullptr);
 					retcode = SQLBindParameter(DBH.hstmt, 2, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &slevel, sizeof(SQLINTEGER), nullptr);
+					retcode = SQLBindParameter(DBH.hstmt, 3, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &sexp, sizeof(SQLINTEGER), nullptr);
 					retcode = SQLExecDirect(DBH.hstmt, sql_query, SQL_NTS);
 					SQLCloseCursor(DBH.hstmt);
 					break;
