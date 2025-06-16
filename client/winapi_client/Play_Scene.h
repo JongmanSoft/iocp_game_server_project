@@ -30,6 +30,12 @@ public:
 
 public:
     bool player_live = true;
+
+public:
+    //시스템메세지 출력용
+    int system_mess_time = 0;
+    CImage sys_mess_img;
+    std::string out_sys_mess;
 private:
     // Chat log
     std::vector<std::wstring> chat_log;
@@ -55,9 +61,9 @@ private:
 
     // Send button
     const int send_button_x = 186, send_button_y = 517, send_button_w = 20, send_button_h = 20;
-    HBRUSH chat_brush = nullptr; // Brush for chat input and button background
-    HFONT chat_font = nullptr; // Font for chat log and input
-    HFONT button_font = nullptr; // Font for send button
+    HBRUSH chat_brush = nullptr; 
+    HFONT chat_font = nullptr; 
+    HFONT button_font = nullptr;
 
 public:
     Play_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC,HINSTANCE hinstance, void* fw);

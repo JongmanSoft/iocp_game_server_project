@@ -95,6 +95,8 @@ void Framework::leave_packet_process(sc_packet_leave p )
 void Framework::stat_change_packet_process(sc_packet_stat_change p)
 {
 	Play_Scene* scene = static_cast<Play_Scene*>(m_scene.get());
+
+	
 	if (p.id == player_login_info.id) {
 		scene->player->_hp = p.hp;
 		scene->player->_level = p.level;
@@ -128,7 +130,11 @@ void Framework::state_packet_process(sc_packet_state p)
 void Framework::chat_packet_process(sc_packet_chat p)
 {
 	Play_Scene* scene = static_cast<Play_Scene*>(m_scene.get());
-
+	if (p.id == -1) {
+		scene->out_sys_mess = p.message;
+		scene->system_mess_time = 1;
+		return;
+	}
 	if (player_login_info.id == p.id) {
 		scene->player->mess_ptr->mess_setting(p.message);
 		return;

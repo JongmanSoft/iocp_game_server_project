@@ -15,6 +15,7 @@ Play_Scene::Play_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC, HINSTANC
     tileset_img.Load(L"image/tileset.png");
     profile_img.Load(L"image/profile.png");
     hp_img.Load(L"image/hp_bar.png");
+    sys_mess_img.Load(L"image/system_msg.png");
 
     // 이미지 로드 확인
     if (tileset_img.IsNull()) OutputDebugString(L"Failed to load tileset_img!\n");
@@ -51,6 +52,7 @@ Play_Scene::Play_Scene(HWND hwnd, HBITMAP hBufferBitmap, HDC hBufferDC, HINSTANC
     button_font = CreateFont(11, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
         OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
         DEFAULT_PITCH | FF_DONTCARE, L"둥근모꼴");
+
 }
 
 Play_Scene::~Play_Scene()
@@ -66,6 +68,10 @@ void Play_Scene::update()
     for (const auto& pair : objects) {
         std::shared_ptr<object> obj = pair.second.load();
         obj->update();
+    }
+    if (system_mess_time > 0) {
+        system_mess_time += 1;
+        if (system_mess_time > 20) system_mess_time = 0;
     }
 }
 
@@ -178,6 +184,38 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
         // Chat UI
         Draw_chat();
+
+        //draw system msg
+        if (system_mess_time > 0) {
+            sys_mess_img.AlphaBlend(m_hBufferDC, 0, 0, window_size, window_size,
+                0, 0, profile_img.GetWidth(), profile_img.GetHeight(), 255, AC_SRC_OVER);
+
+            HFONT old_font = (HFONT)SelectObject(m_hBufferDC, chat_font);
+
+            SetTextColor(m_hBufferDC, RGB(255, 255, 255));
+            size_t char_count = 0; 
+            size_t byte_pos = 0; 
+            for (size_t i = 0; i < (out_sys_mess.length() + 19) / 20; i++) {
+                std::string real_out_str;
+                char_count = 0;
+                size_t start_pos = byte_pos;
+                while (byte_pos < out_sys_mess.length() && char_count < 20) {
+                    unsigned char c = out_sys_mess[byte_pos];
+                    if (c < 128) {
+                        char_count++;
+                        byte_pos++;
+                    }
+                    else {
+                        char_count++;
+                        byte_pos += 2;
+                    }
+                }
+                real_out_str = out_sys_mess.substr(start_pos, byte_pos - start_pos);
+                TextOutA(m_hBufferDC, 52, 401 + (i * 18), real_out_str.c_str(), real_out_str.length());
+            }
+            
+            DeleteObject(old_font);
+        }
 
         BitBlt(hdc, 0, 0, window_size, window_size, m_hBufferDC, 0, 0, SRCCOPY);
         SelectObject(m_hBufferDC, old_font);
@@ -416,6 +454,7 @@ LRESULT Play_Scene::windowproc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     }
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
+
 }
 
 void Play_Scene::Draw_chat()

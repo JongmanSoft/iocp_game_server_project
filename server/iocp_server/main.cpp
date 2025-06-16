@@ -232,11 +232,18 @@ void update_attack(int c_id, char action, char dir) {
 					//때리는데 성공함!
 					shared_ptr <NPC> PP = std::dynamic_pointer_cast<NPC>(p);
 					if (PP->_o_type != ORC_NPC) {
-						std::cout << "<전투메세지>" << c_id << "가 " << p_id << "에게 " << Dammage(c->_level) << "데미지의 공격!" << std::endl;
+						std::string str_result = std::string(c->_name) + "가 " + std::string(PP->_name) + "에게 " + std::to_string(Dammage(c->_level)) + "데미지 공격!";
+						std::cout << str_result << std::endl;
+						c->send_chat_packet(-1, str_result.c_str());
+						
 						PP->_hp -= Dammage(c->_level);
 						c->send_stat_packet(p->_id);
 						if (PP->_hp <= 0) {
-							std::cout << "<전투메세지>" << c_id << "가 " << p_id <<  "를 물리쳤다!" << std::endl;
+							std::string str_result = std::string(c->_name) + "가 " + std::string(PP->_name) + "를 물리쳤다!";
+							std::cout << str_result << std::endl;
+							c->send_chat_packet(-1, str_result.c_str());
+
+							
 							PP->_state = ST_FREE;
 							delete_sector(p_id, PP->x, PP->y);
 							update_animation(p_id, DEATH, npc_state_dir[dir-1]);
@@ -264,11 +271,17 @@ void update_attack(int c_id, char action, char dir) {
 					//때리는데 성공함!
 					shared_ptr <NPC> PP = std::dynamic_pointer_cast<NPC>(p);
 					if (PP->_o_type != ORC_NPC) {
-						std::cout << "<전투메세지>" << c_id << "가 " << p_id << "에게 " << Dammage(c->_level) << "데미지의 전체공격!" << std::endl;
+						std::string str_result = std::string(c->_name) + "가 " + std::string(PP->_name) + "에게 " + std::to_string(Dammage(c->_level)) + "데미지 공격!";
+						std::cout << str_result << std::endl;
+						c->send_chat_packet(-1, str_result.c_str());
+
 						PP->_hp -= Dammage(c->_level);
 						c->send_stat_packet(p->_id);
 						if (PP->_hp <= 0) {
-							std::cout << "<전투메세지>" << c_id << "가 " << p_id << "를 물리쳤다!" << std::endl;
+							std::string str_result = std::string(c->_name) + "가 " + std::string(PP->_name) + "를 물리쳤다!";
+							std::cout << str_result << std::endl;
+							c->send_chat_packet(-1, str_result.c_str());
+
 							PP->_state = ST_FREE;
 							delete_sector(p_id, PP->x, PP->y);
 							update_animation(p_id, DEATH, npc_state_dir[dir-1]);
@@ -294,7 +307,11 @@ void update_attack(int c_id, char action, char dir) {
 					if (false == can_skill(c_id, p->_id))continue;
 					//회복스킬 성공함!
 					shared_ptr <USER> PP = std::dynamic_pointer_cast<USER>(p);
-						std::cout << "<전투메세지>" << c_id << "가 " << p_id << "에게 회복스킬 시전!" << std::endl;
+						std::string str_result = std::string(c->_name) + "가 " + std::string(PP->_name) + "에게 회복스킬 사용!";
+						std::cout << str_result << std::endl;
+						c->send_chat_packet(-1, str_result.c_str());
+
+						
 						PP->_hp += 20;
 						PP->_hp = min(MaxHP(PP->_level), PP->_hp);
 						PP->send_stat_packet(p_id);
@@ -666,17 +683,23 @@ void worker_thread(HANDLE h_iocp)
 				}
 
 				//apply dammage
-				std::cout << "적:" << npc->_id << "가 " << "플레이어:" << me->_id << "에게 " << NPC_DAMMAGE[npc->_o_type - 2] << "데미지 공격!" << std::endl;
+				std::string str_result = std::string(npc->_name) + "가 :" + std::string(me->_name) + "에게 " + std::to_string(NPC_DAMMAGE[npc->_o_type - 2]) + "데미지 공격!";
+				std::cout << str_result << std::endl;
+				me->send_chat_packet(-1, str_result.c_str());
+				
 				me->_hp -= NPC_DAMMAGE[npc->_o_type - 2];
 				if (me->_hp <= 0) {
 					//주금 ㅠ
+					std::string str_result = std::string(npc->_name) + "가 :" + std::string(me->_name) + "를 죽였습니다...";
+					std::cout << str_result << std::endl;
+					me->send_chat_packet(-1, str_result.c_str());
 					bool old_state = true;
 					if (!atomic_compare_exchange_strong(&me->_is_live, &old_state, false))break;
 
 					me->_hp = 0;
 					me->_exp = me->_exp / 2;
 					me->send_state_packet(key, DEATH, me->_dir);
-					TIMER_EVENT tev(key, 10, relive_update, 0);
+					TIMER_EVENT tev(key, 30, relive_update, 0);
 					TIQ.push(tev);
 					delete_sector(key, me->x, me->y);
 					//todo leave전달
