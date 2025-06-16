@@ -399,10 +399,26 @@ void process_packet(int c_id, char* packet) {
 			short x = c->x;
 			short y = c->y;
 			switch (p->direction) {
-			case MOVE_UP: if (y > 0) y--; break;
-			case MOVE_DOWN: if (y < MAP_HEIGHT - 1) y++; break;
-			case MOVE_LEFT: if (x > 0) x--; break;
-			case MOVE_RIGHT: if (x < MAP_WIDTH - 1) x++; break;
+			case MOVE_UP: if ((y > 0)) {
+				short find_index_y = y % 100;
+				if (find_index_y == 0) find_index_y = 100;
+				if(!collision_data[x%100][find_index_y -1])y--;
+			}  break;
+			case MOVE_DOWN: if (y < MAP_HEIGHT - 1) {
+				short find_index_y = y % 100;
+				if (find_index_y == 99) find_index_y = 0;
+				if (!collision_data[x % 100][find_index_y + 1])y++;
+			} break;
+			case MOVE_LEFT: if (x > 0) {
+				short find_index_x = x % 100;
+				if (find_index_x == 0) find_index_x = 100;
+				if (!collision_data[find_index_x - 1][y % 100])x--;
+			}  break;
+			case MOVE_RIGHT: if (x < MAP_WIDTH - 1) {
+				short find_index_x = x % 100;
+				if (find_index_x == 99) find_index_x = 0;
+				if (!collision_data[find_index_x + 1][y % 100])x++;
+			}  break;
 			}
 			if (get_sector_index(c->x, c->y) == get_sector_index(x, y))
 			{
